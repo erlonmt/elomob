@@ -10,7 +10,7 @@ O modelo separa a rede de transporte das informações particulares do usuário.
 | transport_modes | Código único, nome e cor de cada modal |
 | stops | Local, endereço, coordenadas, `location` geográfico gerado pelo PostGIS, modal principal e disponibilidade demonstrativa de bicicletas |
 | lines | Linha, modal, janela de funcionamento, frequência e tarifa |
-| connections | Origem, destino, geometria `path` LineString, modal, linha opcional, duração, distância, tarifa de embarque e acessibilidade |
+| connections | Origem, destino, geometria `path` LineString, modal, linha opcional, duração, distância, tarifa de embarque própria quando não há linha e acessibilidade |
 | integrations | Local de troca entre dois modais, tempo e descrição |
 | saved_places | Nome dado pelo usuário a uma parada, com unicidade por usuário e nome |
 | trip_searches | Origem, destino, filtros, usuário opcional, hash de sessão e data |
@@ -49,6 +49,7 @@ Connections possui duas chaves para stops; trip_searches também possui origem e
 - PostgreSQL verifica coordenadas válidas, duração e distância positivas nas conexões e origem diferente do destino.
 - Frequências, durações, distâncias e posições são positivas; tarifas, custos, quantidades de bicicletas e vagas, trocas e tempos de integração nunca são negativos; a espera de um passo não ultrapassa a duração dele. O `unsigned` do Laravel não tem efeito no PostgreSQL, por isso essas regras são restrições CHECK.
 - O critério de um itinerário e a rota preferida do usuário só aceitam os quatro critérios calculados pela aplicação.
+- Uma conexão com linha cobra a tarifa da linha e não guarda tarifa própria; só conexões sem linha (táxi, aplicativo, bicicleta e caminhada) têm `boarding_fare_cents`. Uma chave estrangeira composta para `lines (id, transport_mode_id)` mantém o modal da conexão igual ao da linha, e mudar o modal de uma linha atualiza suas conexões.
 - As conexões referenciadas por passos não podem ser excluídas.
 
 A preferência de modais é uma lista pequena em JSON, validada pela aplicação. As entidades da rede permanecem relacionais.

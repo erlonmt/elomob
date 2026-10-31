@@ -117,10 +117,17 @@ ALTER TABLE itineraries ADD CONSTRAINT itineraries_valid CHECK (total_minutes > 
 ALTER TABLE itineraries ADD CONSTRAINT itineraries_criterion CHECK (criterion IN ('fastest', 'cheapest', 'transfers', 'sustainable'));
 ALTER TABLE itinerary_steps ADD CONSTRAINT itinerary_steps_valid CHECK (sequence > 0 AND minutes > 0 AND distance_meters > 0 AND cost_cents >= 0 AND wait_minutes BETWEEN 0 AND minutes);
 ALTER TABLE users ADD CONSTRAINT users_preferred_route CHECK (preferred_route IN ('fastest', 'cheapest', 'transfers', 'sustainable'));
+alter table "lines" add constraint "lines_id_transport_mode_id_unique" unique ("id", "transport_mode_id");
+alter table "connections" alter column "boarding_fare_cents" drop not null, alter column "boarding_fare_cents" drop default;
+drop index "connections_line_id_index";
+create index "connections_line_id_transport_mode_id_index" on "connections" ("line_id", "transport_mode_id");
+alter table "connections" add constraint "connections_line_id_transport_mode_id_foreign" foreign key ("line_id", "transport_mode_id") references "lines" ("id", "transport_mode_id") on delete restrict on update cascade;
+ALTER TABLE connections ADD CONSTRAINT connections_fare_source CHECK ((line_id IS NULL) <> (boarding_fare_cents IS NULL));
 INSERT INTO migrations (migration,batch) VALUES ('0001_01_01_000000_create_users_table',1);
 INSERT INTO migrations (migration,batch) VALUES ('0001_01_01_000001_create_cache_table',1);
 INSERT INTO migrations (migration,batch) VALUES ('0001_01_01_000002_create_jobs_table',1);
 INSERT INTO migrations (migration,batch) VALUES ('2026_10_30_174536_create_mobility_tables',1);
 INSERT INTO migrations (migration,batch) VALUES ('2026_10_31_012655_add_spatial_network_and_wait_times',1);
 INSERT INTO migrations (migration,batch) VALUES ('2026_10_31_205505_add_integrity_checks_and_foreign_key_indexes',1);
+INSERT INTO migrations (migration,batch) VALUES ('2026_10_31_212051_make_lines_the_source_of_connection_fares_and_modes',1);
 COMMIT;

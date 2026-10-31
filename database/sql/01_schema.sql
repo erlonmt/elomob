@@ -126,6 +126,8 @@ ALTER TABLE connections ADD CONSTRAINT connections_fare_source CHECK ((line_id I
 alter table "itinerary_steps" add column "transfer_minutes" smallint not null default '0';
 ALTER TABLE itinerary_steps DROP CONSTRAINT itinerary_steps_valid;
 ALTER TABLE itinerary_steps ADD CONSTRAINT itinerary_steps_valid CHECK (sequence > 0 AND minutes > 0 AND distance_meters > 0 AND cost_cents >= 0 AND wait_minutes >= 0 AND transfer_minutes >= 0 AND wait_minutes + transfer_minutes <= minutes);
+alter table "connections" drop constraint "connections_from_stop_id_to_stop_id_transport_mode_id_unique";
+alter table "connections" add constraint "connections_stops_mode_line_unique" unique nulls not distinct ("from_stop_id", "to_stop_id", "transport_mode_id", "line_id");
 INSERT INTO migrations (migration,batch) VALUES ('0001_01_01_000000_create_users_table',1);
 INSERT INTO migrations (migration,batch) VALUES ('0001_01_01_000001_create_cache_table',1);
 INSERT INTO migrations (migration,batch) VALUES ('0001_01_01_000002_create_jobs_table',1);
@@ -134,4 +136,5 @@ INSERT INTO migrations (migration,batch) VALUES ('2026_10_31_012655_add_spatial_
 INSERT INTO migrations (migration,batch) VALUES ('2026_10_31_205505_add_integrity_checks_and_foreign_key_indexes',1);
 INSERT INTO migrations (migration,batch) VALUES ('2026_10_31_212051_make_lines_the_source_of_connection_fares_and_modes',1);
 INSERT INTO migrations (migration,batch) VALUES ('2026_10_31_222451_add_transfer_minutes_to_itinerary_steps',1);
+INSERT INTO migrations (migration,batch) VALUES ('2026_10_31_225510_allow_several_lines_on_the_same_stretch',1);
 COMMIT;

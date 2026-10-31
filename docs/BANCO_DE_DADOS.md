@@ -43,6 +43,7 @@ Connections possui duas chaves para stops; trip_searches também possui origem e
 ## Integridade
 
 - Código de modal, código de linha e nome de parada são únicos.
+- Uma conexão é única por origem, destino, modal e linha, então várias linhas podem atender o mesmo trecho. Conexões sem linha continuam únicas por trecho e modal, porque o PostgreSQL compara a linha vazia como igual (`NULLS NOT DISTINCT`).
 - Um nome de favorito pode existir para usuários diferentes, mas não se repetir para a mesma conta.
 - Não se repete um critério no mesmo conjunto de resultados nem uma posição no mesmo itinerário.
 - Exclusão de usuário remove favoritos e preserva buscas desvinculadas da conta. Exclusão de busca remove seus itinerários e passos.

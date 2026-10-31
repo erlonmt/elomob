@@ -6,14 +6,14 @@ O modelo separa a rede de transporte das informações particulares do usuário.
 
 | Tabela | Dados e relações |
 | --- | --- |
-| users | Conta, senha com hash, modais preferidos em JSON e critérios de acessibilidade |
+| users | Conta, senha com hash, modais preferidos em `jsonb` e critérios de acessibilidade |
 | transport_modes | Código único, nome e cor de cada modal |
 | stops | Local, endereço, coordenadas, `location` geográfico gerado pelo PostGIS, modal principal e disponibilidade demonstrativa de bicicletas |
 | lines | Linha, modal, janela de funcionamento, frequência e tarifa |
 | connections | Origem, destino, geometria `path` LineString, modal, linha opcional, duração, distância, tarifa de embarque própria quando não há linha e acessibilidade |
 | integrations | Troca de um modal para outro em um local, em um sentido, com tempo gasto, acessibilidade e descrição; a carga registra os dois sentidos |
 | saved_places | Nome dado pelo usuário a uma parada, com unicidade por usuário e nome |
-| trip_searches | Origem, destino, filtros, usuário opcional, hash de sessão e data |
+| trip_searches | Origem, destino, saída pedida (`departure_at`, vazia quando a busca é para sair na hora), opções da busca em `filters` (modais e acessibilidade), usuário opcional, hash de sessão e data |
 | itineraries | Critério e totais de uma opção calculada para uma busca |
 | itinerary_steps | Sequência de conexões, valores calculados por etapa e `wait_minutes` e `transfer_minutes` incluídos na duração |
 
@@ -54,7 +54,7 @@ Connections possui duas chaves para stops; trip_searches também possui origem e
 - Uma conexão com linha cobra a tarifa da linha e não guarda tarifa própria; só conexões sem linha (táxi, aplicativo, bicicleta e caminhada) têm `boarding_fare_cents`. Uma chave estrangeira composta para `lines (id, transport_mode_id)` mantém o modal da conexão igual ao da linha, e mudar o modal de uma linha atualiza suas conexões.
 - As conexões referenciadas por passos não podem ser excluídas.
 
-A preferência de modais é uma lista pequena em JSON, validada pela aplicação. As entidades da rede permanecem relacionais.
+A preferência de modais e as opções de cada busca são pequenos documentos em `jsonb`, o tipo JSON binário do PostgreSQL, validados pela aplicação. O que define o resultado de uma busca fica em colunas: origem, destino e saída pedida, em UTC como as demais datas. As entidades da rede permanecem relacionais.
 
 ## Aplicar os scripts
 

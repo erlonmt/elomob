@@ -46,7 +46,8 @@ Connections possui duas chaves para stops; trip_searches também possui origem e
 - Uma conexão é única por origem, destino, modal e linha, então várias linhas podem atender o mesmo trecho. Conexões sem linha continuam únicas por trecho e modal, porque o PostgreSQL compara a linha vazia como igual (`NULLS NOT DISTINCT`).
 - Um nome de favorito pode existir para usuários diferentes, mas não se repetir para a mesma conta.
 - Não se repete um critério no mesmo conjunto de resultados nem uma posição no mesmo itinerário.
-- Exclusão de usuário remove favoritos e preserva buscas desvinculadas da conta. Exclusão de busca remove seus itinerários e passos.
+- Exclusão de usuário remove favoritos e desvincula as buscas da conta. Exclusão de busca remove seus itinerários e passos.
+- Buscas sem conta (de visitantes ou de contas excluídas) são apagadas uma semana depois de criadas por uma limpeza diária (`model:prune`); só a sessão que fez a busca de visitante consegue abri-la de novo. As buscas de cada conta continuam no histórico.
 - PostgreSQL verifica coordenadas válidas, duração e distância positivas nas conexões e origem diferente do destino.
 - Frequências, durações, distâncias e posições são positivas; tarifas, custos, quantidades de bicicletas e vagas, trocas e tempos de integração nunca são negativos; a espera somada ao tempo de integração de um passo não ultrapassa a duração dele. O `unsigned` do Laravel não tem efeito no PostgreSQL, por isso essas regras são restrições CHECK.
 - O critério de um itinerário e a rota preferida do usuário só aceitam os quatro critérios calculados pela aplicação.

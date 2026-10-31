@@ -99,9 +99,28 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER stops_sync_connections
 AFTER UPDATE OF latitude, longitude ON stops
 FOR EACH ROW EXECUTE FUNCTION elomob_sync_stop_connections();
+create index "stops_transport_mode_id_index" on "stops" ("transport_mode_id");
+create index "lines_transport_mode_id_index" on "lines" ("transport_mode_id");
+create index "connections_to_stop_id_index" on "connections" ("to_stop_id");
+create index "connections_transport_mode_id_index" on "connections" ("transport_mode_id");
+create index "connections_line_id_index" on "connections" ("line_id");
+create index "integrations_from_mode_id_index" on "integrations" ("from_mode_id");
+create index "integrations_to_mode_id_index" on "integrations" ("to_mode_id");
+create index "saved_places_stop_id_index" on "saved_places" ("stop_id");
+create index "trip_searches_origin_id_index" on "trip_searches" ("origin_id");
+create index "trip_searches_destination_id_index" on "trip_searches" ("destination_id");
+create index "itinerary_steps_connection_id_index" on "itinerary_steps" ("connection_id");
+ALTER TABLE lines ADD CONSTRAINT lines_valid CHECK (frequency_minutes > 0 AND fare_cents >= 0);
+ALTER TABLE stops ADD CONSTRAINT stops_bike_counts CHECK (bikes_available >= 0 AND docks_available >= 0);
+ALTER TABLE integrations ADD CONSTRAINT integrations_valid CHECK (transfer_minutes >= 0);
+ALTER TABLE itineraries ADD CONSTRAINT itineraries_valid CHECK (total_minutes > 0 AND total_distance_meters > 0 AND total_cost_cents >= 0 AND transfers >= 0);
+ALTER TABLE itineraries ADD CONSTRAINT itineraries_criterion CHECK (criterion IN ('fastest', 'cheapest', 'transfers', 'sustainable'));
+ALTER TABLE itinerary_steps ADD CONSTRAINT itinerary_steps_valid CHECK (sequence > 0 AND minutes > 0 AND distance_meters > 0 AND cost_cents >= 0 AND wait_minutes BETWEEN 0 AND minutes);
+ALTER TABLE users ADD CONSTRAINT users_preferred_route CHECK (preferred_route IN ('fastest', 'cheapest', 'transfers', 'sustainable'));
 INSERT INTO migrations (migration,batch) VALUES ('0001_01_01_000000_create_users_table',1);
 INSERT INTO migrations (migration,batch) VALUES ('0001_01_01_000001_create_cache_table',1);
 INSERT INTO migrations (migration,batch) VALUES ('0001_01_01_000002_create_jobs_table',1);
 INSERT INTO migrations (migration,batch) VALUES ('2026_10_30_174536_create_mobility_tables',1);
 INSERT INTO migrations (migration,batch) VALUES ('2026_10_31_012655_add_spatial_network_and_wait_times',1);
+INSERT INTO migrations (migration,batch) VALUES ('2026_10_31_205505_add_integrity_checks_and_foreign_key_indexes',1);
 COMMIT;

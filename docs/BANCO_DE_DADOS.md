@@ -1,6 +1,6 @@
 # Modelagem lógica do ELOMOB
 
-O modelo separa a rede de transporte das informações particulares do usuário. Valores monetários são inteiros em centavos. Chaves estrangeiras impedem relações órfãs; índices atendem consultas por origem, usuário e busca.
+O modelo separa a rede de transporte das informações particulares do usuário. Valores monetários são inteiros em centavos. Chaves estrangeiras impedem relações órfãs; toda chave estrangeira tem índice próprio, o que atende junções, consultas por origem, usuário e busca e as verificações feitas antes de uma exclusão.
 
 ## Tabelas do domínio
 
@@ -47,6 +47,8 @@ Connections possui duas chaves para stops; trip_searches também possui origem e
 - Não se repete um critério no mesmo conjunto de resultados nem uma posição no mesmo itinerário.
 - Exclusão de usuário remove favoritos e preserva buscas desvinculadas da conta. Exclusão de busca remove seus itinerários e passos.
 - PostgreSQL verifica coordenadas válidas, duração e distância positivas nas conexões e origem diferente do destino.
+- Frequências, durações, distâncias e posições são positivas; tarifas, custos, quantidades de bicicletas e vagas, trocas e tempos de integração nunca são negativos; a espera de um passo não ultrapassa a duração dele. O `unsigned` do Laravel não tem efeito no PostgreSQL, por isso essas regras são restrições CHECK.
+- O critério de um itinerário e a rota preferida do usuário só aceitam os quatro critérios calculados pela aplicação.
 - As conexões referenciadas por passos não podem ser excluídas.
 
 A preferência de modais é uma lista pequena em JSON, validada pela aplicação. As entidades da rede permanecem relacionais.

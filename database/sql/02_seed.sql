@@ -62,5 +62,8 @@ SELECT setval(pg_get_serial_sequence('connections','id'),(SELECT MAX(id) FROM "c
 INSERT INTO "integrations" ("id","stop_id","from_mode_id","to_mode_id","transfer_minutes","description","accessible") VALUES ('1','2','1','2','3','Linhas demonstrativas 042, 081 e 033',TRUE);
 INSERT INTO "integrations" ("id","stop_id","from_mode_id","to_mode_id","transfer_minutes","description","accessible") VALUES ('2','3','2','3','2','Estação de bicicletas demonstrativa',TRUE);
 INSERT INTO "integrations" ("id","stop_id","from_mode_id","to_mode_id","transfer_minutes","description","accessible") VALUES ('3','12','1','3','5','Integração demonstrativa na CDU',TRUE);
+INSERT INTO "integrations" ("id","stop_id","from_mode_id","to_mode_id","transfer_minutes","description","accessible") VALUES ('4','2','2','1','3','Linhas demonstrativas 042, 081 e 033',TRUE);
+INSERT INTO "integrations" ("id","stop_id","from_mode_id","to_mode_id","transfer_minutes","description","accessible") VALUES ('5','3','3','2','2','Estação de bicicletas demonstrativa',TRUE);
+INSERT INTO "integrations" ("id","stop_id","from_mode_id","to_mode_id","transfer_minutes","description","accessible") VALUES ('6','12','3','1','5','Integração demonstrativa na CDU',TRUE);
 SELECT setval(pg_get_serial_sequence('integrations','id'),(SELECT MAX(id) FROM "integrations"),true);
 COMMIT;

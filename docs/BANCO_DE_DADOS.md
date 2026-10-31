@@ -11,7 +11,7 @@ O modelo separa a rede de transporte das informações particulares do usuário.
 | stops | Local, endereço, coordenadas, `location` geográfico gerado pelo PostGIS, modal principal e disponibilidade demonstrativa de bicicletas |
 | lines | Linha, modal, janela de funcionamento, frequência e tarifa |
 | connections | Origem, destino, geometria `path` LineString, modal, linha opcional, duração, distância, tarifa de embarque própria quando não há linha e acessibilidade |
-| integrations | Local de troca entre dois modais, tempo gasto na troca, acessibilidade e descrição |
+| integrations | Troca de um modal para outro em um local, em um sentido, com tempo gasto, acessibilidade e descrição; a carga registra os dois sentidos |
 | saved_places | Nome dado pelo usuário a uma parada, com unicidade por usuário e nome |
 | trip_searches | Origem, destino, filtros, usuário opcional, hash de sessão e data |
 | itineraries | Critério e totais de uma opção calculada para uma busca |

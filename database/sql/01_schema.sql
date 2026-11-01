@@ -68,7 +68,7 @@ alter table "itinerary_steps" add constraint "itinerary_steps_itinerary_id_seque
 ALTER TABLE connections ADD CONSTRAINT connections_valid CHECK (from_stop_id <> to_stop_id AND minutes > 0 AND distance_meters > 0 AND boarding_fare_cents >= 0);
 ALTER TABLE stops ADD CONSTRAINT stops_coordinates CHECK (latitude BETWEEN -90 AND 90 AND longitude BETWEEN -180 AND 180);
 ALTER TABLE trip_searches ADD CONSTRAINT searches_distinct_places CHECK (origin_id <> destination_id);
-ALTER TABLE itinerary_steps ADD COLUMN wait_minutes smallint NOT NULL DEFAULT 0;
+alter table "itinerary_steps" add column "wait_minutes" smallint not null default '0';
 ALTER TABLE stops ADD COLUMN location geography(Point, 4326) GENERATED ALWAYS AS (ST_SetSRID(ST_MakePoint(longitude::double precision, latitude::double precision), 4326)::geography) STORED;
 CREATE INDEX stops_location_gist ON stops USING GIST (location);
 ALTER TABLE connections ADD COLUMN path geometry(LineString, 4326);

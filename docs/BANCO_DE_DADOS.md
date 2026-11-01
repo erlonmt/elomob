@@ -17,7 +17,7 @@ O modelo separa a rede de transporte das informações particulares do usuário.
 | itineraries | Critério e totais de uma opção calculada para uma busca |
 | itinerary_steps | Sequência de conexões, valores calculados por etapa e `wait_minutes` e `transfer_minutes` incluídos na duração |
 
-As tabelas adicionais de cache, filas, sessões e recuperação de senha são infraestrutura padrão do Laravel. O ambiente local usa sessões em arquivos e cache no Redis.
+As tabelas adicionais de cache, filas, sessões e recuperação de senha são infraestrutura padrão do Laravel. O ambiente local guarda sessões e cache no Redis.
 
 A migração aditiva habilita PostGIS e gera `stops.location` como `geography(Point,4326)` a partir das coordenadas. Índices GiST atendem consultas por proximidade em metros e geometrias de conexões. Triggers mantêm `connections.path` atualizado quando seus extremos ou as coordenadas das paradas mudam. A API usa `ST_DWithin`, `ST_Distance` e `ST_AsGeoJSON`. Os segmentos são esquemáticos e não representam ruas oficiais.
 

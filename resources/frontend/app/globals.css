@@ -1531,6 +1531,9 @@ main {
 .prose p + p {
   margin-top: 14px;
 }
+.prose p a {
+  text-decoration: underline;
+}
 .prose ol {
   padding-left: 20px;
 }

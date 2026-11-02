@@ -1,0 +1,84 @@
+x-laravel-environment: &laravel-environment
+  APP_ENV: local
+  APP_DEBUG: "false"
+  APP_URL: http://localhost:8000
+  DB_CONNECTION: pgsql
+  DB_HOST: db
+  DB_PORT: 5432
+  DB_DATABASE: elomob
+  DB_USERNAME: elomob
+  DB_PASSWORD: elomob_local
+  SESSION_DRIVER: redis
+  CACHE_STORE: redis
+  REDIS_CLIENT: phpredis
+  REDIS_HOST: redis
+  REDIS_PORT: 6379
+  QUEUE_CONNECTION: sync
+  BOOST_ENABLED: "false"
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: resources/frontend/Dockerfile
+    ports:
+      - "127.0.0.1:8000:3000"
+    environment:
+      BACKEND_URL: http://app:8000
+      NODE_ENV: production
+    depends_on:
+      app:
+        condition: service_healthy
+  app:
+    build: .
+    ports:
+      - "127.0.0.1:8002:8000"
+    environment: *laravel-environment
+    volumes:
+      - app_storage:/app/storage
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "php", "-r", "exit(@file_get_contents('http://127.0.0.1:8000/up') === false ? 1 : 0);"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+  scheduler:
+    build: .
+    entrypoint: ["php", "artisan", "schedule:work", "--no-interaction"]
+    environment: *laravel-environment
+    volumes:
+      - app_storage:/app/storage
+    depends_on:
+      app:
+        condition: service_healthy
+  db:
+    image: postgis/postgis:18-3.6-alpine
+    environment:
+      POSTGRES_DB: elomob
+      POSTGRES_USER: elomob
+      POSTGRES_PASSWORD: elomob_local
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U elomob -d elomob"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  redis:
+    image: redis:8-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+volumes:
+  postgres_data:
+  app_storage:
+  redis_data:

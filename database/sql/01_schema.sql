@@ -141,6 +141,8 @@ ALTER TABLE users ALTER COLUMN accessibility_needs DROP DEFAULT;
 ALTER TABLE users ALTER COLUMN accessibility_needs TYPE jsonb USING accessibility_needs::jsonb;
 ALTER TABLE users ALTER COLUMN accessibility_needs SET DEFAULT '[]'::jsonb;
 ALTER TABLE users ADD CONSTRAINT users_accessibility_needs CHECK (jsonb_typeof(accessibility_needs) = 'array' AND accessibility_needs <@ '["wheelchair","reduced_mobility","visual","hearing"]'::jsonb);
+alter table "integrations" add column "fare_integrated" boolean not null default '0';
+alter table "itinerary_steps" add column "fare_integrated" boolean not null default '0';
 INSERT INTO migrations (migration,batch) VALUES ('0001_01_01_000000_create_users_table',1);
 INSERT INTO migrations (migration,batch) VALUES ('0001_01_01_000001_create_cache_table',1);
 INSERT INTO migrations (migration,batch) VALUES ('0001_01_01_000002_create_jobs_table',1);
@@ -152,4 +154,5 @@ INSERT INTO migrations (migration,batch) VALUES ('2026_10_31_222451_add_transfer
 INSERT INTO migrations (migration,batch) VALUES ('2026_10_31_225510_allow_several_lines_on_the_same_stretch',1);
 INSERT INTO migrations (migration,batch) VALUES ('2026_10_31_230854_move_search_departure_out_of_filters',1);
 INSERT INTO migrations (migration,batch) VALUES ('2026_11_02_004520_add_accessibility_needs_and_features',1);
+INSERT INTO migrations (migration,batch) VALUES ('2026_11_02_132510_add_fare_integration_to_integrations_and_steps',1);
 COMMIT;

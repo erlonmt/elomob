@@ -11,11 +11,11 @@ O modelo separa a rede de transporte das informações particulares do usuário.
 | stops | Local, endereço, coordenadas, `location` geográfico gerado pelo PostGIS, modal principal, recursos de acessibilidade (`accessible`, `tactile_paving` e `visual_signs`) e disponibilidade demonstrativa de bicicletas |
 | lines | Linha, modal, janela de funcionamento, frequência e tarifa |
 | connections | Origem, destino, geometria `path` LineString, modal, linha opcional, duração, distância, tarifa de embarque própria quando não há linha e recursos de acessibilidade (`accessible`, `has_stairs`, `adapted`, `audible_signals` e `visual_signs`) |
-| integrations | Troca de um modal para outro em um local, em um sentido, com tempo gasto, acessibilidade e descrição; a carga registra os dois sentidos |
+| integrations | Troca de um modal para outro em um local, em um sentido, com tempo gasto, acessibilidade, integração tarifária (`fare_integrated`) e descrição; a carga registra os dois sentidos |
 | saved_places | Nome dado pelo usuário a uma parada, com unicidade por usuário e nome |
 | trip_searches | Origem, destino, saída pedida (`departure_at`, vazia quando a busca é para sair na hora), opções da busca em `filters` (modais e tipos de necessidade), usuário opcional, hash de sessão e data |
 | itineraries | Critério e totais de uma opção calculada para uma busca |
-| itinerary_steps | Sequência de conexões, valores calculados por etapa e `wait_minutes` e `transfer_minutes` incluídos na duração |
+| itinerary_steps | Sequência de conexões, valores calculados por etapa, `wait_minutes` e `transfer_minutes` incluídos na duração e `fare_integrated` quando a etapa embarcou por uma integração tarifária |
 
 As tabelas adicionais de cache, filas, sessões e recuperação de senha são infraestrutura padrão do Laravel. O ambiente local guarda sessões e cache no Redis.
 
@@ -52,6 +52,10 @@ O usuário marca no perfil um ou mais tipos de necessidade. Cada tipo exige recu
 | `hearing`: deficiência auditiva | `visual_signs` | `visual_signs` | — |
 
 Nas paradas, `accessible` indica acesso sem degraus, `tactile_paving` o piso tátil e `visual_signs` o painel de informações. Nas conexões, `accessible` indica um trecho transitável em cadeira de rodas, `has_stairs` a presença de escada, `adapted` o veículo com elevador ou rampa, `audible_signals` o aviso sonoro e `visual_signs` o letreiro ou painel. Em um trecho a pé, `audible_signals` é o semáforo sonoro, `visual_signs` a sinalização visual, e `adapted` vale sempre verdadeiro, porque não há veículo. Os recursos novos começam como falsos, porque só existem depois de cadastrados.
+
+## Integração tarifária
+
+Quem troca de serviço em uma integração com `fare_integrated` paga só a diferença até a tarifa mais alta, e nada quando a nova tarifa é menor ou igual. Uma sequência de trocas integradas custa, assim, a maior tarifa entre os serviços usados. Chegar a pé ou trocar em uma integração sem tarifa integrada cobra a tarifa cheia. A etapa que embarcou pela integração guarda `fare_integrated` verdadeiro e, em `cost_cents`, só a diferença paga. A coluna começa como falsa, como os recursos de acessibilidade, porque só vale depois de cadastrada.
 
 ## Integridade
 

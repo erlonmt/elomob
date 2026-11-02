@@ -58,7 +58,7 @@ export function HomeScreen() {
                 value={origin}
                 onChange={setOrigin}
                 label="Origem"
-                placeholder="Sua localização atual"
+                placeholder="Escolha a origem"
               />
               <GpsButton
                 disabled={loading}
@@ -72,7 +72,7 @@ export function HomeScreen() {
                 value={destination}
                 onChange={setDestination}
                 label="Destino"
-                placeholder="Digite o destino..."
+                placeholder="Escolha o destino"
               />
             </label>
             <Notice>{error}</Notice>

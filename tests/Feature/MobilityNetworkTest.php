@@ -2,7 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Models\Connection;
 use App\Models\Stop;
+use App\Services\MobilityNetwork;
 use App\Services\RoutePlanner;
 use Closure;
 use Illuminate\Database\RecordsNotFoundException;
@@ -77,6 +79,16 @@ class MobilityNetworkTest extends TestCase
 
         $this->expectException(RecordsNotFoundException::class);
         $this->fastestBusMinutes();
+    }
+
+    public function test_the_network_is_loaded_with_only_the_connections_of_the_chosen_modes(): void
+    {
+        $connections = app(MobilityNetwork::class)->load(['bus', 'walk'])['connections'];
+        $expected = DB::table('connections')->join('transport_modes', 'transport_modes.id', '=', 'connections.transport_mode_id')
+            ->whereIn('transport_modes.code', ['bus', 'walk'])->count();
+
+        $this->assertSame(['bus', 'walk'], $connections->map(fn (Connection $connection): string => $connection->mode->code)->unique()->sort()->values()->all());
+        $this->assertCount($expected, $connections);
     }
 
     public function test_the_cached_network_holds_plain_arrays(): void

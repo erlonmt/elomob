@@ -36,9 +36,9 @@ class RoutePlanner
     public function plan(int $origin, int $destination, array $filters): array
     {
         $needs = array_map(AccessibilityNeed::from(...), $filters['accessibility_needs'] ?? []);
-        $network = $this->network->load();
+        $network = $this->network->load([...$filters['modes'], TransportModeCode::Walk->value]);
         $search = new RouteSearch(
-            connectionsFrom: $this->usableConnections($network['connections'], $filters['modes'], $needs),
+            connectionsFrom: $this->usableConnections($network['connections'], $needs),
             usableStops: $this->usableStops($network['stops'], $needs),
             integrations: $network['integrations'],
             needsAccessibleIntegrations: array_any($needs, fn (AccessibilityNeed $need): bool => $need->requirements()['accessible_integration']),
@@ -80,21 +80,17 @@ class RoutePlanner
     }
 
     /**
-     * Keep the connections of the selected modes, plus walking, that offer what every accessibility need requires of
-     * them, grouped by the stop they leave from.
+     * Keep the connections that offer what every accessibility need requires of them, grouped by the stop they
+     * leave from.
      *
      * @param  EloquentCollection<int, Connection>  $connections
-     * @param  array<int, value-of<TransportModeCode>>  $modes
      * @param  list<AccessibilityNeed>  $needs
      * @return Collection<int, EloquentCollection<int, Connection>>
      */
-    private function usableConnections(EloquentCollection $connections, array $modes, array $needs): Collection
+    private function usableConnections(EloquentCollection $connections, array $needs): Collection
     {
-        $modes[] = TransportModeCode::Walk->value;
-
         return $connections
-            ->filter(fn (Connection $connection): bool => in_array($connection->mode->code, $modes, true)
-                && array_all($needs, fn (AccessibilityNeed $need): bool => $need->isMetAlong($connection)))
+            ->filter(fn (Connection $connection): bool => array_all($needs, fn (AccessibilityNeed $need): bool => $need->isMetAlong($connection)))
             ->groupBy('from_stop_id');
     }
 

@@ -37,18 +37,22 @@ class MobilityNetwork
     ];
 
     /**
-     * Load the network: the stops keyed by id, the connections in id order with their mode, line and stops, and the
-     * integrations keyed by "stop id:mode code arrived with:mode code left with".
+     * Load the network a search with the given modes may use: the stops keyed by id, the connections of those modes in
+     * id order with their mode, line and stops, and the integrations keyed by "stop id:mode code arrived with:mode code
+     * left with". The cache keeps the whole network; only the chosen connections become models.
      *
+     * @param  list<string>  $modeCodes
      * @return array{stops: EloquentCollection<int, Stop>, connections: EloquentCollection<int, Connection>, integrations: EloquentCollection<string, Integration>}
      */
-    public function load(): array
+    public function load(array $modeCodes): array
     {
         $rows = $this->rows();
         $modes = TransportMode::hydrate($rows['transport_modes'])->keyBy('id');
+        $chosenModes = $modes->filter(fn (TransportMode $mode): bool => in_array($mode->code, $modeCodes, true));
         $lines = Line::hydrate($rows['lines'])->keyBy('id');
         $stops = Stop::hydrate($rows['stops'])->keyBy('id');
-        $connections = Connection::hydrate($rows['connections'])->each(function (Connection $connection) use ($modes, $lines, $stops): void {
+        $chosenRows = array_values(array_filter($rows['connections'], fn (array $row): bool => $chosenModes->has($row['transport_mode_id'])));
+        $connections = Connection::hydrate($chosenRows)->each(function (Connection $connection) use ($modes, $lines, $stops): void {
             $connection->setRelation('mode', $modes[$connection->transport_mode_id])
                 ->setRelation('line', $connection->line_id === null ? null : $lines[$connection->line_id])
                 ->setRelation('fromStop', $stops[$connection->from_stop_id])

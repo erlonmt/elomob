@@ -9,6 +9,7 @@ import { StopSelect } from '@/components/stop-select';
 import { DemoNote, Icon, Loading, Notice, PageHeader } from '@/components/ui';
 import { needTitles } from '@/lib/accessibility';
 import { api, errorMessage } from '@/lib/api';
+import { recifeTime, serviceHoursNotice } from '@/lib/schedule';
 import type { Search } from '@/lib/types';
 
 export function SearchScreen() {
@@ -23,6 +24,11 @@ export function SearchScreen() {
   const [scheduled, setScheduled] = useState(Boolean(params.get('departure_at')));
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const hoursNotice = serviceHoursNotice(
+    catalog.lines,
+    modes,
+    scheduled && departure ? departure.slice(11, 16) : recifeTime(new Date()),
+  );
 
   useEffect(() => {
     if (!loading && !sessionLoading && !initialized.current) {
@@ -150,6 +156,11 @@ export function SearchScreen() {
               ))}
             </div>
           </fieldset>
+          {hoursNotice && (
+            <p className="hours-note" role="status">
+              {hoursNotice}
+            </p>
+          )}
           {user && (
             <p className="preference-note">
               {user.accessibility_needs.length

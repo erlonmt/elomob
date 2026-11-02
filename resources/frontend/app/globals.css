@@ -725,6 +725,15 @@ main {
 .preference-note a {
   text-decoration: underline;
 }
+.hours-note {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #fff7e6;
+  border: 1px solid #f3d9a4;
+  color: #6b4a00;
+  font-size: 13px;
+}
 .available-places {
   padding: 20px;
 }

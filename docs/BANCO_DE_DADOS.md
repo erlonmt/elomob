@@ -81,4 +81,6 @@ psql -h localhost -U elomob -d elomob -f database/sql/02_seed.sql
 
 O primeiro script também registra as migrations aplicadas. O segundo ajusta as sequências de IDs após inserir os dados. Não execute esses scripts sobre um banco já migrado. Para a rotina de desenvolvimento, use `php artisan migrate --seed`.
 
-Coordenadas, conexões, tarifas e horários da carga são dados de demonstração e precisam ser substituídos por fontes validadas antes de qualquer uso público.
+A carga tem 17 paradas, 7 linhas (entre elas a Linha Sul do metrô, a 061 pela Via Mangue e o BRT da Caxangá), 52 conexões e 6 integrações. Os recursos de acessibilidade variam de propósito: a Estação Recife tem degraus na entrada e escada até a plataforma da Linha Centro, cujos trens não têm painel; a travessia dela até o Recife Antigo não tem semáforo sonoro; as linhas 042 e 081 não têm letreiro; a 033 não tem elevador; o trecho a pé entre a Estação Joana Bezerra e Afogados não serve para cadeira de rodas; e o Terminal Cais de Santa Rita não tem piso tátil. Com isso, cada tipo de necessidade muda o trajeto de Boa Viagem ao Recife Antigo.
+
+Coordenadas, conexões, tarifas, horários e recursos de acessibilidade da carga são dados de demonstração e precisam ser substituídos por fontes validadas antes de qualquer uso público.

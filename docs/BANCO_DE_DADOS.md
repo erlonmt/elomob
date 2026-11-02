@@ -42,7 +42,7 @@ Connections possui duas chaves para stops; trip_searches também possui origem e
 
 ## Acessibilidade
 
-O usuário marca no perfil um ou mais tipos de necessidade. Cada tipo exige recursos da rede em todo o trajeto, e vários tipos somam as exigências. As colunas de paradas valem para as duas pontas de cada conexão.
+O usuário marca no perfil um ou mais tipos de necessidade. Cada tipo exige recursos da rede em todo o trajeto, e vários tipos somam as exigências. As colunas de paradas valem para as paradas em que a pessoa está: a origem, o destino, as paradas em que embarca ou desembarca e as que percorre a pé. Uma parada por onde ela só passa dentro do veículo não precisa delas.
 
 | Tipo (`accessibility_needs`) | Paradas | Conexão | Integração |
 | --- | --- | --- | --- |

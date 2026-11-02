@@ -32,4 +32,14 @@ class RouteCriterionTest extends TestCase
         $this->assertSame(-1, RouteCriterion::Transfers->sortKey($slower) <=> RouteCriterion::Transfers->sortKey($faster));
         $this->assertSame(1, RouteCriterion::Fastest->sortKey($slower) <=> RouteCriterion::Fastest->sortKey($faster));
     }
+
+    public function test_only_the_sustainable_route_is_limited_to_a_quarter_longer_than_the_fastest(): void
+    {
+        $this->assertTrue(RouteCriterion::Sustainable->accepts(125, 100));
+        $this->assertFalse(RouteCriterion::Sustainable->accepts(126, 100));
+        $this->assertTrue(RouteCriterion::Sustainable->accepts(100, 100));
+        foreach ([RouteCriterion::Fastest, RouteCriterion::Cheapest, RouteCriterion::Transfers] as $criterion) {
+            $this->assertTrue($criterion->accepts(500, 100), $criterion->value);
+        }
+    }
 }

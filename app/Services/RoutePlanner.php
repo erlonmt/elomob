@@ -23,7 +23,8 @@ class RoutePlanner
     /**
      * Find, for each criterion (fastest, cheapest, transfers, sustainable), the best path from origin to
      * destination departing at "departure_at" (default: now in Recife). A single RouteSearch finds every route no
-     * other one beats on all measures, and each criterion picks its best among them; the plans are keyed by the
+     * other one beats on all measures, and each criterion picks its best among the ones it accepts (the most
+     * sustainable takes at most a quarter longer than the fastest); the plans are keyed by the
      * criterion value, in RouteCriterion order, and criteria without a path are omitted. Each accessibility need
      * keeps only the connections offering what it requires and the stops doing so wherever the passenger is at them
      * (every stop but those passed on board), and wheelchair and reduced mobility needs also avoid inaccessible
@@ -44,11 +45,15 @@ class RoutePlanner
             departure: $this->departure($filters['departure_at'] ?? null),
         );
         $arrivals = collect($search->arrivals($origin, $destination));
+        $fastestMinutes = (int) $arrivals->min('minutes');
 
         $plans = [];
         foreach (RouteCriterion::cases() as $criterion) {
             /** @var RouteLabel|null $best */
-            $best = $arrivals->sortBy(fn (RouteLabel $arrival): array => $criterion->sortKey($arrival->measures()))->first();
+            $best = $arrivals
+                ->filter(fn (RouteLabel $arrival): bool => $criterion->accepts($arrival->minutes, $fastestMinutes))
+                ->sortBy(fn (RouteLabel $arrival): array => $criterion->sortKey($arrival->measures()))
+                ->first();
             if ($best !== null) {
                 $plans[$criterion->value] = [
                     'minutes' => $best->minutes,

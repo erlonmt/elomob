@@ -82,7 +82,7 @@ O perfil tem `id`, `name`, `email`, `preferred_route`, `transport_modes` e `acce
 
 | Campo | Valores |
 | --- | --- |
-| `preferred_route` e `criterion` | `fastest` (mais rápido), `cheapest` (mais barato), `transfers` (menos integrações) e `sustainable` (mais sustentável) |
+| `preferred_route` e `criterion` | `fastest` (mais rápido), `cheapest` (mais barato), `transfers` (menos integrações) e `sustainable` (mais sustentável, entre os trajetos que levam no máximo 25% a mais que o mais rápido) |
 | `transport_modes` e `modes` | `bus`, `metro`, `bike`, `taxi` e `app`, ao menos um e sem repetir |
 | `mode` nos filtros | Os cinco acima e `walk` |
 

@@ -27,4 +27,14 @@ enum RouteCriterion: string
             self::Sustainable => [$measures['impact'], $measures['minutes'], $measures['cost']],
         };
     }
+
+    /**
+     * Whether this criterion may choose a route taking the given minutes when the fastest one takes $fastestMinutes.
+     * The most sustainable route takes at most a quarter longer than the fastest, so a lower impact never costs a
+     * much longer trip; the other criteria take any route.
+     */
+    public function accepts(int $minutes, int $fastestMinutes): bool
+    {
+        return $this !== self::Sustainable || $minutes * 4 <= $fastestMinutes * 5;
+    }
 }

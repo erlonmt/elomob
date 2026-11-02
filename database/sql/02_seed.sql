@@ -86,11 +86,11 @@ INSERT INTO "connections" ("id","from_stop_id","to_stop_id","transport_mode_id",
 INSERT INTO "connections" ("id","from_stop_id","to_stop_id","transport_mode_id","line_id","minutes","distance_meters","boarding_fare_cents","accessible","has_stairs","adapted","audible_signals","visual_signs") VALUES ('51','10','4','6',NULL,'18','1300','0',TRUE,FALSE,TRUE,TRUE,TRUE);
 INSERT INTO "connections" ("id","from_stop_id","to_stop_id","transport_mode_id","line_id","minutes","distance_meters","boarding_fare_cents","accessible","has_stairs","adapted","audible_signals","visual_signs") VALUES ('52','4','10','6',NULL,'18','1300','0',TRUE,FALSE,TRUE,TRUE,TRUE);
 SELECT setval(pg_get_serial_sequence('connections','id'),(SELECT MAX(id) FROM "connections"),true);
-INSERT INTO "integrations" ("id","stop_id","from_mode_id","to_mode_id","transfer_minutes","description","accessible") VALUES ('1','2','1','2','3','Terminal integrado: ônibus 042 e Linhas Centro e Sul do metrô',TRUE);
-INSERT INTO "integrations" ("id","stop_id","from_mode_id","to_mode_id","transfer_minutes","description","accessible") VALUES ('2','3','2','3','2','Estação de bicicletas demonstrativa, com degraus na saída',FALSE);
-INSERT INTO "integrations" ("id","stop_id","from_mode_id","to_mode_id","transfer_minutes","description","accessible") VALUES ('3','12','1','3','5','Integração demonstrativa na CDU',TRUE);
-INSERT INTO "integrations" ("id","stop_id","from_mode_id","to_mode_id","transfer_minutes","description","accessible") VALUES ('4','2','2','1','3','Terminal integrado: ônibus 042 e Linhas Centro e Sul do metrô',TRUE);
-INSERT INTO "integrations" ("id","stop_id","from_mode_id","to_mode_id","transfer_minutes","description","accessible") VALUES ('5','3','3','2','2','Estação de bicicletas demonstrativa, com degraus na saída',FALSE);
-INSERT INTO "integrations" ("id","stop_id","from_mode_id","to_mode_id","transfer_minutes","description","accessible") VALUES ('6','12','3','1','5','Integração demonstrativa na CDU',TRUE);
+INSERT INTO "integrations" ("id","stop_id","from_mode_id","to_mode_id","transfer_minutes","description","accessible","fare_integrated") VALUES ('1','2','1','2','3','Terminal integrado: ônibus 042 e Linhas Centro e Sul do metrô',TRUE,TRUE);
+INSERT INTO "integrations" ("id","stop_id","from_mode_id","to_mode_id","transfer_minutes","description","accessible","fare_integrated") VALUES ('2','3','2','3','2','Estação de bicicletas demonstrativa, com degraus na saída',FALSE,FALSE);
+INSERT INTO "integrations" ("id","stop_id","from_mode_id","to_mode_id","transfer_minutes","description","accessible","fare_integrated") VALUES ('3','12','1','3','5','Integração demonstrativa na CDU',TRUE,FALSE);
+INSERT INTO "integrations" ("id","stop_id","from_mode_id","to_mode_id","transfer_minutes","description","accessible","fare_integrated") VALUES ('4','2','2','1','3','Terminal integrado: ônibus 042 e Linhas Centro e Sul do metrô',TRUE,TRUE);
+INSERT INTO "integrations" ("id","stop_id","from_mode_id","to_mode_id","transfer_minutes","description","accessible","fare_integrated") VALUES ('5','3','3','2','2','Estação de bicicletas demonstrativa, com degraus na saída',FALSE,FALSE);
+INSERT INTO "integrations" ("id","stop_id","from_mode_id","to_mode_id","transfer_minutes","description","accessible","fare_integrated") VALUES ('6','12','3','1','5','Integração demonstrativa na CDU',TRUE,FALSE);
 SELECT setval(pg_get_serial_sequence('integrations','id'),(SELECT MAX(id) FROM "integrations"),true);
 COMMIT;

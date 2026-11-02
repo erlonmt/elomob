@@ -57,6 +57,8 @@ Nas paradas, `accessible` indica acesso sem degraus, `tactile_paving` o piso tá
 
 Quem troca de serviço em uma integração com `fare_integrated` paga só a diferença até a tarifa mais alta, e nada quando a nova tarifa é menor ou igual. Uma sequência de trocas integradas custa, assim, a maior tarifa entre os serviços usados. Chegar a pé ou trocar em uma integração sem tarifa integrada cobra a tarifa cheia. A etapa que embarcou pela integração guarda `fare_integrated` verdadeiro e, em `cost_cents`, só a diferença paga. A coluna começa como falsa, como os recursos de acessibilidade, porque só vale depois de cadastrada.
 
+Na carga, só a Estação Joana Bezerra integra a tarifa, entre ônibus e metrô, nos dois sentidos. De Boa Viagem ao Recife Antigo, a 042 cobra R$ 3,80 e o metrô não cobra nada, em vez de R$ 5,40 no total. Na volta, o metrô cobra R$ 1,60 e a 042 só a diferença de R$ 2,20. As integrações com bicicleta cobram à parte, porque o compartilhamento de bicicletas é outro sistema.
+
 ## Integridade
 
 - Código de modal, código de linha e nome de parada são únicos.

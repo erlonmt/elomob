@@ -7,7 +7,8 @@ use App\Services\RoutePlanner;
 use Illuminate\Http\Request;
 
 /**
- * An itinerary with its search summary and its GeoJSON for the map, as shown on the itinerary detail screen.
+ * An itinerary with its search summary and its GeoJSON for the map, as shown on the itinerary detail screen. A search
+ * to leave now has no departure; its creation time is when the trip starts.
  * Requires the "tripSearch" relation with its "origin" and "destination", plus the described "steps".
  *
  * @mixin Itinerary
@@ -40,6 +41,7 @@ class ItineraryDetailResource extends ItineraryResource
                 'origin' => $search->origin->name,
                 'destination' => $search->destination->name,
                 'departure_at' => $search->departure_at?->setTimezone(RoutePlanner::TIMEZONE)->toIso8601String(),
+                'created_at' => $search->created_at->toIso8601String(),
                 'filters' => $search->filters,
             ],
             'geojson' => $this->geojson,

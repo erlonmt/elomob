@@ -251,6 +251,16 @@ class MobilityApiTest extends TestCase
         $this->getJson('/api/v1/trajetos/'.$itinerary['id'])->assertOk()->assertJsonPath('data.steps.1.fare_integrated', true);
     }
 
+    public function test_the_itinerary_detail_says_when_a_search_to_leave_now_was_made(): void
+    {
+        $data = Arr::except(array_replace($this->searchData(), ['modes' => ['bus', 'metro']]), 'departure_at');
+        $search = $this->postJson('/api/v1/buscas', $data)->assertCreated()->json('data');
+
+        $this->getJson('/api/v1/trajetos/'.$search['itineraries'][0]['id'])->assertOk()
+            ->assertJsonPath('data.search.departure_at', null)
+            ->assertJsonPath('data.search.created_at', '2026-10-30T17:30:00+00:00');
+    }
+
     public function test_the_requested_departure_has_its_own_column_and_filters_keep_only_the_options(): void
     {
         $search = $this->postJson('/api/v1/buscas', $this->searchData())->assertCreated()

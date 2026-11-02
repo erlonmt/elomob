@@ -15,14 +15,14 @@ test('distances in meters are shown in kilometers with at most one decimal', () 
 });
 
 test('a step says what it charges, and a fare-integrated one only the difference', () => {
-  assert.equal(stepFare({ cost_cents: 380, fare_integrated: false }), 'R$ 3,80');
+  assert.equal(stepFare({ cost_cents: 380, fare_integrated: false }), 'Tarifa de R$ 3,80.');
   assert.equal(
     stepFare({ cost_cents: 0, fare_integrated: true }),
-    'Integração tarifária: sem nova tarifa',
+    'Integração tarifária, sem nova tarifa.',
   );
   assert.equal(
     stepFare({ cost_cents: 220, fare_integrated: true }),
-    'Integração tarifária: R$ 2,20 de diferença',
+    'Integração tarifária, com R$ 2,20 de diferença.',
   );
   assert.equal(stepFare({ cost_cents: 0, fare_integrated: false }), null);
   assert.equal(stepFare({ cost_cents: 0 }), null);

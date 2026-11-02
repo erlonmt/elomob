@@ -55,6 +55,7 @@ export type Step = {
   destination: string;
   mode: string;
   mode_name: string;
+  color?: string;
   line_code: string | null;
   minutes: number;
   cost_cents: number;
@@ -110,7 +111,14 @@ export type Search = {
 /** The search an itinerary belongs to, as the itinerary detail endpoint describes it. */
 export type SearchSummary = Pick<
   Search,
-  'id' | 'origin' | 'destination' | 'origin_id' | 'destination_id' | 'filters' | 'departure_at'
+  | 'id'
+  | 'origin'
+  | 'destination'
+  | 'origin_id'
+  | 'destination_id'
+  | 'filters'
+  | 'departure_at'
+  | 'created_at'
 >;
 export type Favorite = {
   id: number;

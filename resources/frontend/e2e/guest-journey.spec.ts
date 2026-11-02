@@ -16,10 +16,16 @@ test('a guest plans a bus and metro trip and pays a single fare at the integrate
 
   await fastest.click();
   await expect(page).toHaveURL(/\/trajetos\/\d+/);
-  const steps = page.locator('.steps');
-  await expect(steps).toContainText('Boa Viagem → Estação Joana Bezerra');
-  await expect(steps).toContainText('Integração tarifária: sem nova tarifa');
-  await expect(steps).toContainText('Estação Recife → Recife Antigo');
+  const stops = page.locator('.journey-leg');
+  await expect(stops).toHaveCount(4);
+  await expect(stops.nth(0)).toContainText('14:30Boa Viagem');
+  await expect(stops.nth(0)).toContainText('042 Ônibus até Estação Joana Bezerra');
+  await expect(stops.nth(0)).toContainText('Embarque às 14:36, depois de espera de 6 min.');
+  await expect(stops.nth(1)).toContainText('14:54Estação Joana Bezerra');
+  await expect(stops.nth(1)).toContainText('Integração tarifária, sem nova tarifa.');
+  await expect(stops.nth(2)).toContainText('15:10Estação Recife');
+  await expect(stops.nth(2)).toContainText('A pé até Recife Antigo');
+  await expect(stops.nth(3)).toHaveText('15:17Recife Antigo');
   await expect(page.locator('.journey-summary')).toContainText(/R\$\s3,80/);
 });
 

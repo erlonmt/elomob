@@ -18,8 +18,8 @@ export function stepFare({
 }: Pick<Step, 'cost_cents' | 'fare_integrated'>) {
   if (fare_integrated) {
     return cost_cents > 0
-      ? `Integração tarifária: ${money(cost_cents)} de diferença`
-      : 'Integração tarifária: sem nova tarifa';
+      ? `Integração tarifária, com ${money(cost_cents)} de diferença.`
+      : 'Integração tarifária, sem nova tarifa.';
   }
-  return cost_cents > 0 ? money(cost_cents) : null;
+  return cost_cents > 0 ? `Tarifa de ${money(cost_cents)}.` : null;
 }

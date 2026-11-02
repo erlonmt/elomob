@@ -143,6 +143,21 @@ ALTER TABLE users ALTER COLUMN accessibility_needs SET DEFAULT '[]'::jsonb;
 ALTER TABLE users ADD CONSTRAINT users_accessibility_needs CHECK (jsonb_typeof(accessibility_needs) = 'array' AND accessibility_needs <@ '["wheelchair","reduced_mobility","visual","hearing"]'::jsonb);
 alter table "integrations" add column "fare_integrated" boolean not null default '0';
 alter table "itinerary_steps" add column "fare_integrated" boolean not null default '0';
+create table "network_versions" ("id" smallint not null, "version" varchar(36) not null);
+alter table "network_versions" add primary key ("id");
+insert into "network_versions" ("id", "version") values (1, gen_random_uuid()::text);
+ALTER TABLE network_versions ADD CONSTRAINT network_versions_single_row CHECK (id = 1);
+CREATE OR REPLACE FUNCTION elomob_renew_network_version() RETURNS trigger AS $$
+BEGIN
+    UPDATE network_versions SET version = gen_random_uuid()::text;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+CREATE TRIGGER transport_modes_renew_network_version AFTER INSERT OR UPDATE OR DELETE OR TRUNCATE ON transport_modes FOR EACH STATEMENT EXECUTE FUNCTION elomob_renew_network_version();
+CREATE TRIGGER stops_renew_network_version AFTER INSERT OR UPDATE OR DELETE OR TRUNCATE ON stops FOR EACH STATEMENT EXECUTE FUNCTION elomob_renew_network_version();
+CREATE TRIGGER lines_renew_network_version AFTER INSERT OR UPDATE OR DELETE OR TRUNCATE ON lines FOR EACH STATEMENT EXECUTE FUNCTION elomob_renew_network_version();
+CREATE TRIGGER connections_renew_network_version AFTER INSERT OR UPDATE OR DELETE OR TRUNCATE ON connections FOR EACH STATEMENT EXECUTE FUNCTION elomob_renew_network_version();
+CREATE TRIGGER integrations_renew_network_version AFTER INSERT OR UPDATE OR DELETE OR TRUNCATE ON integrations FOR EACH STATEMENT EXECUTE FUNCTION elomob_renew_network_version();
 INSERT INTO migrations (migration,batch) VALUES ('0001_01_01_000000_create_users_table',1);
 INSERT INTO migrations (migration,batch) VALUES ('0001_01_01_000001_create_cache_table',1);
 INSERT INTO migrations (migration,batch) VALUES ('0001_01_01_000002_create_jobs_table',1);
@@ -155,4 +170,5 @@ INSERT INTO migrations (migration,batch) VALUES ('2026_10_31_225510_allow_severa
 INSERT INTO migrations (migration,batch) VALUES ('2026_10_31_230854_move_search_departure_out_of_filters',1);
 INSERT INTO migrations (migration,batch) VALUES ('2026_11_02_004520_add_accessibility_needs_and_features',1);
 INSERT INTO migrations (migration,batch) VALUES ('2026_11_02_132510_add_fare_integration_to_integrations_and_steps',1);
+INSERT INTO migrations (migration,batch) VALUES ('2026_11_02_141210_create_network_versions_table',1);
 COMMIT;

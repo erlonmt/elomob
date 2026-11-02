@@ -15,6 +15,7 @@ O modelo separa a rede de transporte das informações particulares do usuário.
 | saved_places | Nome dado pelo usuário a uma parada, com unicidade por usuário e nome |
 | trip_searches | Origem, destino, saída pedida (`departure_at`, vazia quando a busca é para sair na hora), opções da busca em `filters` (modais e tipos de necessidade), usuário opcional, hash de sessão e data |
 | itineraries | Critério e totais de uma opção calculada para uma busca |
+| network_versions | Versão atual da rede, em uma única linha. Gatilhos a renovam quando muda uma tabela da rede, e o planejador guarda a rede no Redis sob essa versão |
 | itinerary_steps | Sequência de conexões, valores calculados por etapa, `wait_minutes` e `transfer_minutes` incluídos na duração e `fare_integrated` quando a etapa embarcou por uma integração tarifária |
 
 As tabelas adicionais de cache, filas, sessões e recuperação de senha são infraestrutura padrão do Laravel. O ambiente local guarda sessões e cache no Redis.
@@ -73,6 +74,7 @@ Na carga, só a Estação Joana Bezerra integra a tarifa, entre ônibus e metrô
 - `users.accessibility_needs` é sempre uma lista e só aceita os quatro tipos de necessidade.
 - Uma conexão com linha cobra a tarifa da linha e não guarda tarifa própria; só conexões sem linha (táxi, aplicativo, bicicleta e caminhada) têm `boarding_fare_cents`. Uma chave estrangeira composta para `lines (id, transport_mode_id)` mantém o modal da conexão igual ao da linha, e mudar o modal de uma linha atualiza suas conexões.
 - As conexões referenciadas por passos não podem ser excluídas.
+- `network_versions` só aceita uma linha, e gatilhos de comando renovam a versão depois de qualquer inclusão, alteração, exclusão ou `TRUNCATE` em `transport_modes`, `stops`, `lines`, `connections` e `integrations`.
 
 A preferência de modais, os tipos de necessidade e as opções de cada busca são pequenos documentos em `jsonb`, o tipo JSON binário do PostgreSQL, validados pela aplicação. O que define o resultado de uma busca fica em colunas: origem, destino e saída pedida, em UTC como as demais datas. As entidades da rede permanecem relacionais.
 

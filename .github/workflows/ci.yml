@@ -1,0 +1,141 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: API Laravel
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgis/postgis:18-3.6-alpine
+        env:
+          POSTGRES_DB: elomob_test
+          POSTGRES_USER: elomob
+          POSTGRES_PASSWORD: elomob_local
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U elomob -d elomob_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: pdo_pgsql, pdo_sqlite, mbstring, intl, bcmath, zip, redis
+          coverage: none
+          tools: composer:v2
+
+      - name: Cache das dependências PHP
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
+
+      - name: Preparar o .env
+        run: cp .env.example .env
+
+      - name: Instalar dependências
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Gerar a chave da aplicação
+        run: php artisan key:generate --no-interaction
+
+      - name: Formatação (Pint)
+        run: vendor/bin/pint --test
+
+      - name: Testes em SQLite
+        run: composer test
+
+      - name: Testes em PostgreSQL e PostGIS
+        run: composer test:pgsql
+
+  frontend:
+    name: Front-end Next.js
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: resources/frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: resources/frontend/package-lock.json
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Tipos (TypeScript)
+        run: npm run typecheck
+
+      - name: Testes
+        run: npm test
+
+      - name: Build de produção
+        run: npm run build
+
+  docker:
+    name: Docker Compose e testes de ponta a ponta
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Subir todos os serviços
+        run: docker compose up --build --detach --wait --wait-timeout 600
+
+      - name: Conferir o front, o proxy e a API
+        run: |
+          curl --fail --silent --show-error --retry 20 --retry-all-errors --retry-delay 3 http://localhost:8002/up > /dev/null
+          curl --fail --silent --show-error --retry 20 --retry-all-errors --retry-delay 3 http://localhost:8000/ > /dev/null
+          curl --fail --silent --show-error http://localhost:8000/api/v1/catalogo \
+            | python3 -c 'import json, sys; stops = json.load(sys.stdin)["data"]["stops"]; assert stops, "catálogo vazio"; print(len(stops), "paradas no catálogo")'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: resources/frontend/package-lock.json
+
+      - name: Instalar o Playwright e os navegadores
+        working-directory: resources/frontend
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium firefox
+
+      - name: Testes de ponta a ponta (Playwright)
+        working-directory: resources/frontend
+        run: npm run test:e2e
+
+      - name: Guardar o relatório do Playwright
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorio-playwright
+          path: resources/frontend/playwright-report
+          retention-days: 7
+
+      - name: Mostrar os logs
+        if: failure()
+        run: docker compose logs --no-color
+
+      - name: Desligar os serviços
+        if: always()
+        run: docker compose down --volumes

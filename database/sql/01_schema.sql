@@ -131,6 +131,16 @@ alter table "connections" add constraint "connections_stops_mode_line_unique" un
 alter table "trip_searches" add column "departure_at" timestamp(0) without time zone null;
 ALTER TABLE trip_searches ALTER COLUMN filters TYPE jsonb USING filters::jsonb;
 ALTER TABLE users ALTER COLUMN transport_modes TYPE jsonb USING transport_modes::jsonb;
+alter table "stops" add column "tactile_paving" boolean not null default '0';
+alter table "stops" add column "visual_signs" boolean not null default '0';
+alter table "connections" add column "audible_signals" boolean not null default '0';
+alter table "connections" add column "visual_signs" boolean not null default '0';
+alter table "users" add column "accessibility_needs" json not null default '[]';
+alter table "users" drop column "accessible_only", drop column "avoid_stairs", drop column "adapted_only";
+ALTER TABLE users ALTER COLUMN accessibility_needs DROP DEFAULT;
+ALTER TABLE users ALTER COLUMN accessibility_needs TYPE jsonb USING accessibility_needs::jsonb;
+ALTER TABLE users ALTER COLUMN accessibility_needs SET DEFAULT '[]'::jsonb;
+ALTER TABLE users ADD CONSTRAINT users_accessibility_needs CHECK (jsonb_typeof(accessibility_needs) = 'array' AND accessibility_needs <@ '["wheelchair","reduced_mobility","visual","hearing"]'::jsonb);
 INSERT INTO migrations (migration,batch) VALUES ('0001_01_01_000000_create_users_table',1);
 INSERT INTO migrations (migration,batch) VALUES ('0001_01_01_000001_create_cache_table',1);
 INSERT INTO migrations (migration,batch) VALUES ('0001_01_01_000002_create_jobs_table',1);
@@ -141,4 +151,5 @@ INSERT INTO migrations (migration,batch) VALUES ('2026_10_31_212051_make_lines_t
 INSERT INTO migrations (migration,batch) VALUES ('2026_10_31_222451_add_transfer_minutes_to_itinerary_steps',1);
 INSERT INTO migrations (migration,batch) VALUES ('2026_10_31_225510_allow_several_lines_on_the_same_stretch',1);
 INSERT INTO migrations (migration,batch) VALUES ('2026_10_31_230854_move_search_departure_out_of_filters',1);
+INSERT INTO migrations (migration,batch) VALUES ('2026_11_02_004520_add_accessibility_needs_and_features',1);
 COMMIT;

@@ -6,14 +6,14 @@ O modelo separa a rede de transporte das informações particulares do usuário.
 
 | Tabela | Dados e relações |
 | --- | --- |
-| users | Conta, senha com hash, modais preferidos em `jsonb` e critérios de acessibilidade |
+| users | Conta, senha com hash, e, em `jsonb`, modais preferidos e tipos de necessidade de acessibilidade (`accessibility_needs`) |
 | transport_modes | Código único, nome e cor de cada modal |
-| stops | Local, endereço, coordenadas, `location` geográfico gerado pelo PostGIS, modal principal e disponibilidade demonstrativa de bicicletas |
+| stops | Local, endereço, coordenadas, `location` geográfico gerado pelo PostGIS, modal principal, recursos de acessibilidade (`accessible`, `tactile_paving` e `visual_signs`) e disponibilidade demonstrativa de bicicletas |
 | lines | Linha, modal, janela de funcionamento, frequência e tarifa |
-| connections | Origem, destino, geometria `path` LineString, modal, linha opcional, duração, distância, tarifa de embarque própria quando não há linha e acessibilidade |
+| connections | Origem, destino, geometria `path` LineString, modal, linha opcional, duração, distância, tarifa de embarque própria quando não há linha e recursos de acessibilidade (`accessible`, `has_stairs`, `adapted`, `audible_signals` e `visual_signs`) |
 | integrations | Troca de um modal para outro em um local, em um sentido, com tempo gasto, acessibilidade e descrição; a carga registra os dois sentidos |
 | saved_places | Nome dado pelo usuário a uma parada, com unicidade por usuário e nome |
-| trip_searches | Origem, destino, saída pedida (`departure_at`, vazia quando a busca é para sair na hora), opções da busca em `filters` (modais e acessibilidade), usuário opcional, hash de sessão e data |
+| trip_searches | Origem, destino, saída pedida (`departure_at`, vazia quando a busca é para sair na hora), opções da busca em `filters` (modais e tipos de necessidade), usuário opcional, hash de sessão e data |
 | itineraries | Critério e totais de uma opção calculada para uma busca |
 | itinerary_steps | Sequência de conexões, valores calculados por etapa e `wait_minutes` e `transfer_minutes` incluídos na duração |
 
@@ -40,6 +40,19 @@ erDiagram
 
 Connections possui duas chaves para stops; trip_searches também possui origem e destino. Integrations possui duas chaves para transport_modes. O desenho resume essas relações; os scripts SQL apresentam cada coluna e chave.
 
+## Acessibilidade
+
+O usuário marca no perfil um ou mais tipos de necessidade. Cada tipo exige recursos da rede em todo o trajeto, e vários tipos somam as exigências. As colunas de paradas valem para as duas pontas de cada conexão.
+
+| Tipo (`accessibility_needs`) | Paradas | Conexão | Integração |
+| --- | --- | --- | --- |
+| `wheelchair`: cadeira de rodas | `accessible` | `accessible`, `adapted` e sem `has_stairs` | acessível |
+| `reduced_mobility`: mobilidade reduzida | — | sem `has_stairs` | acessível |
+| `visual`: deficiência visual | `tactile_paving` | `audible_signals` | — |
+| `hearing`: deficiência auditiva | `visual_signs` | `visual_signs` | — |
+
+Nas paradas, `accessible` indica acesso sem degraus, `tactile_paving` o piso tátil e `visual_signs` o painel de informações. Nas conexões, `accessible` indica um trecho transitável em cadeira de rodas, `has_stairs` a presença de escada, `adapted` o veículo com elevador ou rampa, `audible_signals` o aviso sonoro e `visual_signs` o letreiro ou painel. Em um trecho a pé, `audible_signals` é o semáforo sonoro, `visual_signs` a sinalização visual, e `adapted` vale sempre verdadeiro, porque não há veículo. Os recursos novos começam como falsos, porque só existem depois de cadastrados.
+
 ## Integridade
 
 - Código de modal, código de linha e nome de parada são únicos.
@@ -51,10 +64,11 @@ Connections possui duas chaves para stops; trip_searches também possui origem e
 - PostgreSQL verifica coordenadas válidas, duração e distância positivas nas conexões e origem diferente do destino.
 - Frequências, durações, distâncias e posições são positivas; tarifas, custos, quantidades de bicicletas e vagas, trocas e tempos de integração nunca são negativos; a espera somada ao tempo de integração de um passo não ultrapassa a duração dele. O `unsigned` do Laravel não tem efeito no PostgreSQL, por isso essas regras são restrições CHECK.
 - O critério de um itinerário e a rota preferida do usuário só aceitam os quatro critérios calculados pela aplicação.
+- `users.accessibility_needs` é sempre uma lista e só aceita os quatro tipos de necessidade.
 - Uma conexão com linha cobra a tarifa da linha e não guarda tarifa própria; só conexões sem linha (táxi, aplicativo, bicicleta e caminhada) têm `boarding_fare_cents`. Uma chave estrangeira composta para `lines (id, transport_mode_id)` mantém o modal da conexão igual ao da linha, e mudar o modal de uma linha atualiza suas conexões.
 - As conexões referenciadas por passos não podem ser excluídas.
 
-A preferência de modais e as opções de cada busca são pequenos documentos em `jsonb`, o tipo JSON binário do PostgreSQL, validados pela aplicação. O que define o resultado de uma busca fica em colunas: origem, destino e saída pedida, em UTC como as demais datas. As entidades da rede permanecem relacionais.
+A preferência de modais, os tipos de necessidade e as opções de cada busca são pequenos documentos em `jsonb`, o tipo JSON binário do PostgreSQL, validados pela aplicação. O que define o resultado de uma busca fica em colunas: origem, destino e saída pedida, em UTC como as demais datas. As entidades da rede permanecem relacionais.
 
 ## Aplicar os scripts
 

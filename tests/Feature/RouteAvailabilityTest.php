@@ -76,6 +76,7 @@ class RouteAvailabilityTest extends TestCase
 
     public function test_an_earlier_costlier_arrival_is_preserved_to_catch_the_last_service(): void
     {
+        $this->withoutTaxiRides();
         $modes = DB::table('transport_modes')->pluck('id', 'code');
         $line = (int) DB::table('lines')->where('code', 'CENTRO')->value('id');
         DB::table('lines')->whereIn('code', ['033', '081', '061'])->update(['ends_at' => '14:00:00']);
@@ -101,6 +102,7 @@ class RouteAvailabilityTest extends TestCase
 
     public function test_an_earlier_cheaper_arrival_can_wait_for_a_line_to_open(): void
     {
+        $this->withoutTaxiRides();
         $modes = DB::table('transport_modes')->pluck('id', 'code');
         $line = (int) DB::table('lines')->where('code', 'CENTRO')->value('id');
         DB::table('lines')->whereIn('code', ['033', '081'])->update(['ends_at' => '14:00:00']);
@@ -209,6 +211,15 @@ class RouteAvailabilityTest extends TestCase
     private function withoutLines(string ...$codes): void
     {
         DB::table('connections')->whereIn('line_id', DB::table('lines')->whereIn('code', $codes)->pluck('id'))->delete();
+    }
+
+    /**
+     * Remove the taxi rides between the seeded stops, which would otherwise offer a way around the taxi ride the test
+     * registers.
+     */
+    private function withoutTaxiRides(): void
+    {
+        DB::table('connections')->where('transport_mode_id', DB::table('transport_modes')->where('code', 'taxi')->value('id'))->delete();
     }
 
     /**

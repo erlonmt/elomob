@@ -24,6 +24,14 @@ class RouteLabelTest extends TestCase
         $this->assertSame('1::0', $origin->key());
     }
 
+    public function test_rides_of_the_same_hired_mode_ending_at_a_stop_compete_with_each_other(): void
+    {
+        $taxi = new RouteLabel(stop: 5, service: 'taxi:40', mode: 'taxi', boarded: true);
+
+        $this->assertSame($taxi->key(), (new RouteLabel(stop: 5, service: 'taxi:41', mode: 'taxi', boarded: true))->key());
+        $this->assertNotSame($taxi->key(), (new RouteLabel(stop: 5, service: 'app:42', mode: 'app', boarded: true))->key());
+    }
+
     public function test_a_label_dominates_another_only_when_no_measure_is_worse_and_it_paid_at_least_as_much(): void
     {
         $label = fn (int $minutes, int $cost, int $paidFare, int $transfers, int $impact): RouteLabel => new RouteLabel(

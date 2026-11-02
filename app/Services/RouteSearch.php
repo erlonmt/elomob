@@ -94,6 +94,7 @@ final readonly class RouteSearch
 
     /**
      * Extend a route along a connection, or return null when the route cannot take it: its stop was already passed,
+     * it is a taxi or app ride right after another one (a single ride from the earlier stop goes straight there),
      * the bike station has no bike or dock, the passenger cannot be at a stop, the integration does not meet their
      * needs or the line no longer runs.
      */
@@ -103,6 +104,9 @@ final readonly class RouteSearch
             return null;
         }
         $mode = TransportModeCode::from($connection->mode->code);
+        if ($mode->isHiredPerRide() && $label->mode !== '' && TransportModeCode::from($label->mode)->isHiredPerRide()) {
+            return null;
+        }
         if ($mode === TransportModeCode::Bike && (($connection->fromStop->bikes_available ?? 0) < 1 || ($connection->toStop->docks_available ?? 0) < 1)) {
             return null;
         }

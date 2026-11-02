@@ -178,6 +178,25 @@ class MobilitySeeder extends Seeder
      */
     private const array CONNECTION_FEATURES = ['accessible' => true, 'has_stairs' => false, 'adapted' => true, 'audible_signals' => true, 'visual_signs' => true];
 
+    /**
+     * Taxi and app rides between any two stops at least ON_DEMAND_MINIMUM_METERS apart (closer ones are walked), unless
+     * a stretch above registers the ride. A ride follows the straight line times ROAD_DETOUR at ROAD_METERS_PER_MINUTE,
+     * and an app ride adds the wait for the car. Fares are a flag fall plus a price per kilometre; both, like the
+     * speed, are calibrated on the registered rides from Boa Viagem to Recife Antigo.
+     *
+     * @var array<string, array{flag_fall: int, per_kilometre: int, pickup_minutes: int}>
+     */
+    private const array ON_DEMAND_RIDES = [
+        'taxi' => ['flag_fall' => 450, 'per_kilometre' => 180, 'pickup_minutes' => 0],
+        'app' => ['flag_fall' => 400, 'per_kilometre' => 155, 'pickup_minutes' => 4],
+    ];
+
+    private const int ON_DEMAND_MINIMUM_METERS = 1000;
+
+    private const float ROAD_DETOUR = 1.15;
+
+    private const int ROAD_METERS_PER_MINUTE = 312;
+
     public function run(): void
     {
         foreach (self::MODES as [$code, $name, $color]) {
@@ -229,6 +248,38 @@ class MobilitySeeder extends Seeder
             }
         }
 
+        $registered = [];
+        foreach (self::STRETCHES as [$from, $to, $mode]) {
+            $registered["{$from}|{$to}|{$mode}"] = $registered["{$to}|{$from}|{$mode}"] = true;
+        }
+        foreach (self::STOPS as [$from, , $fromLatitude, $fromLongitude]) {
+            foreach (self::STOPS as [$to, , $toLatitude, $toLongitude]) {
+                $straightMeters = $this->straightMeters($fromLatitude, $fromLongitude, $toLatitude, $toLongitude);
+                if ($from === $to || $straightMeters < self::ON_DEMAND_MINIMUM_METERS) {
+                    continue;
+                }
+                $roadMeters = (int) round($straightMeters * self::ROAD_DETOUR);
+                $driveMinutes = (int) ceil($roadMeters / self::ROAD_METERS_PER_MINUTE);
+                foreach (self::ON_DEMAND_RIDES as $mode => $ride) {
+                    if (isset($registered["{$from}|{$to}|{$mode}"])) {
+                        continue;
+                    }
+                    Connection::updateOrCreate([
+                        'from_stop_id' => $stops[$from],
+                        'to_stop_id' => $stops[$to],
+                        'transport_mode_id' => $modes[$mode],
+                        'line_id' => null,
+                    ], [
+                        'minutes' => $driveMinutes + $ride['pickup_minutes'],
+                        'distance_meters' => $roadMeters,
+                        'boarding_fare_cents' => $ride['flag_fall'] + (int) round($ride['per_kilometre'] * $roadMeters / 1000),
+                        ...self::CONNECTION_FEATURES,
+                        ...(self::MODE_BARRIERS[$mode] ?? []),
+                    ]);
+                }
+            }
+        }
+
         foreach ([false, true] as $reversed) {
             foreach (self::INTEGRATIONS as [$stop, $arrivedWith, $leftWith, $minutes, $description, $accessible, $fareIntegrated]) {
                 [$fromMode, $toMode] = $reversed ? [$leftWith, $arrivedWith] : [$arrivedWith, $leftWith];
@@ -238,5 +289,17 @@ class MobilitySeeder extends Seeder
                 );
             }
         }
+    }
+
+    /**
+     * Distance in meters along the Earth's surface between two coordinates (haversine formula).
+     */
+    private function straightMeters(float $fromLatitude, float $fromLongitude, float $toLatitude, float $toLongitude): float
+    {
+        $latitudeDelta = deg2rad($toLatitude - $fromLatitude);
+        $longitudeDelta = deg2rad($toLongitude - $fromLongitude);
+        $haversine = sin($latitudeDelta / 2) ** 2 + cos(deg2rad($fromLatitude)) * cos(deg2rad($toLatitude)) * sin($longitudeDelta / 2) ** 2;
+
+        return 2 * 6371000 * asin(sqrt($haversine));
     }
 }

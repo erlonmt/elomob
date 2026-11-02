@@ -102,16 +102,23 @@ class Connection extends Model
     }
 
     /**
-     * Get the service a passenger rides on this connection: its line, or its mode when it has none.
+     * Get the service a passenger rides on this connection: its line; for a taxi or app ride, the ride itself, hired
+     * from stop to stop; otherwise its mode. Needs the mode relation.
      */
     public function service(): string
     {
-        return $this->line_id ? 'line:'.$this->line_id : $this->mode->code;
+        $mode = TransportModeCode::from($this->mode->code);
+
+        return match (true) {
+            $this->line_id !== null => 'line:'.$this->line_id,
+            $mode->isHiredPerRide() => $mode->value.':'.$this->id,
+            default => $mode->value,
+        };
     }
 
     /**
-     * Whether a passenger going on to the given connection stays on board: the same line, or the same car, taxi or
-     * bike (walking has no vehicle to stay on). Both connections need their mode relation.
+     * Whether a passenger going on to the given connection stays on board: the same line or the same bike. A taxi or
+     * app ride ends at its stop, and walking has no vehicle to stay on. Both connections need their mode relation.
      */
     public function continuesOnBoard(Connection $next): bool
     {

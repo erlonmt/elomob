@@ -33,4 +33,12 @@ class TransportModeCodeTest extends TestCase
 
         $this->assertSame([2, 1, 0, 8, 8, 0], $weights);
     }
+
+    public function test_only_taxi_and_app_rides_are_hired_one_by_one(): void
+    {
+        $this->assertSame(
+            ['taxi', 'app'],
+            array_column(array_values(array_filter(TransportModeCode::cases(), fn (TransportModeCode $mode): bool => $mode->isHiredPerRide())), 'value'),
+        );
+    }
 }

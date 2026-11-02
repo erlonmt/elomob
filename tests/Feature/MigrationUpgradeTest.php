@@ -103,7 +103,7 @@ class MigrationUpgradeTest extends TestCase
         }
         $this->assertSame($stopIds, DB::table('stops')->orderBy('id')->pluck('id')->all());
         $this->assertEquals($connections, DB::table('connections')->whereIn('id', $connections->pluck('id'))->orderBy('id')->get(['id', 'from_stop_id', 'to_stop_id', 'transport_mode_id', 'line_id']));
-        $this->assertDatabaseCount('connections', 52);
+        $this->assertDatabaseCount('connections', 580);
         $this->assertDatabaseHas('itinerary_steps', ['id' => $stepId, 'wait_minutes' => 0, 'transfer_minutes' => 0, 'fare_integrated' => false]);
         $this->assertSame(2, DB::table('integrations')->where('fare_integrated', true)->count());
         $this->assertNotSame($version, DB::table('network_versions')->value('version'));

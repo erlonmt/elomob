@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Enums\TransportModeCode;
+
 /**
  * A partial route found by the route planner: the stop it reached, the service it arrived with and its totals so
  * far. A label is immutable and points to the label it extends, so a route keeps no copy of its stops or steps.
@@ -29,10 +31,14 @@ final readonly class RouteLabel
 
     /**
      * Labels compete only with the others at the same stop that arrived with the same service and have boarded or not.
+     * A taxi or app ride ends at its stop, so every ride of the same mode arriving there leads to the same choices:
+     * those rides compete as one service.
      */
     public function key(): string
     {
-        return $this->stop.':'.$this->service.':'.(int) $this->boarded;
+        $service = $this->mode !== '' && TransportModeCode::from($this->mode)->isHiredPerRide() ? $this->mode : $this->service;
+
+        return $this->stop.':'.$service.':'.(int) $this->boarded;
     }
 
     /**

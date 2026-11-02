@@ -53,6 +53,15 @@ enum TransportModeCode: string
     }
 
     /**
+     * Whether each ride with this mode is hired on its own, from stop to stop: two rides in a row are two services,
+     * each charging its fare.
+     */
+    public function isHiredPerRide(): bool
+    {
+        return $this === self::Taxi || $this === self::App;
+    }
+
+    /**
      * Environmental impact weight added for every meter travelled with this mode.
      */
     public function impactPerMeter(): int

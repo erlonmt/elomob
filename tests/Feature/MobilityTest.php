@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Enums\TransportModeCode;
+use App\Models\Connection;
+use App\Models\Stop;
 use App\Services\RoutePlanner;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
@@ -81,7 +83,55 @@ class MobilityTest extends TestCase
         $this->seed();
         $this->assertDatabaseCount('transport_modes', 6);
         $this->assertDatabaseCount('stops', 17);
-        $this->assertDatabaseCount('connections', 52);
+        $this->assertDatabaseCount('connections', 580);
+    }
+
+    public function test_taxi_and_app_reach_any_two_stops_at_least_a_kilometer_apart_priced_by_distance(): void
+    {
+        $ride = fn (string $from, string $to, string $mode): ?object => DB::table('connections')
+            ->where('from_stop_id', $this->stop($from))->where('to_stop_id', $this->stop($to))
+            ->where('transport_mode_id', DB::table('transport_modes')->where('code', $mode)->value('id'))
+            ->first(['minutes', 'distance_meters', 'boarding_fare_cents']);
+        $values = fn (?object $ride): array => [$ride?->minutes, $ride?->distance_meters, $ride?->boarding_fare_cents];
+
+        $this->assertSame([32, 9758, 2206], $values($ride('Várzea', 'Pina', 'taxi')));
+        $this->assertSame([36, 9758, 1912], $values($ride('Várzea', 'Pina', 'app')));
+        $this->assertSame([25, 7800, 1850], $values($ride('Boa Viagem', 'Recife Antigo', 'taxi')));
+        $this->assertSame([29, 7800, 1600], $values($ride('Boa Viagem', 'Recife Antigo', 'app')));
+        $this->assertNull($ride('Boa Viagem', 'Bike Recife — Est. 12', 'taxi'));
+        foreach (['taxi', 'app'] as $mode) {
+            $this->assertSame(266, DB::table('connections')->where('transport_mode_id', DB::table('transport_modes')->where('code', $mode)->value('id'))->count(), $mode);
+        }
+    }
+
+    public function test_a_hired_ride_never_follows_another_one(): void
+    {
+        $modes = DB::table('transport_modes')->pluck('id', 'code');
+        [$first, $middle, $last] = Stop::factory()->count(3)->create()->modelKeys();
+        foreach ([[$first, $middle, 'taxi'], [$middle, $last, 'app']] as [$from, $to, $mode]) {
+            Connection::factory()->create([
+                'from_stop_id' => $from, 'to_stop_id' => $to, 'transport_mode_id' => $modes[$mode], 'minutes' => 10, 'distance_meters' => 3000, 'boarding_fare_cents' => 1000,
+            ]);
+        }
+        $plans = fn (): array => app(RoutePlanner::class)->plan($first, $last, ['modes' => ['taxi', 'app'], 'departure_at' => '2026-10-30T12:00:00-03:00']);
+
+        $this->assertSame([], $plans());
+
+        Connection::factory()->create([
+            'from_stop_id' => $first, 'to_stop_id' => $last, 'transport_mode_id' => $modes['taxi'], 'minutes' => 18, 'distance_meters' => 5500, 'boarding_fare_cents' => 1600,
+        ]);
+
+        $this->assertSame([18, 1600], [$plans()['fastest']['minutes'], $plans()['fastest']['cost']]);
+    }
+
+    public function test_late_at_night_taxi_and_app_still_reach_the_destination(): void
+    {
+        $plans = app(RoutePlanner::class)->plan($this->stop('Várzea'), $this->stop('Pina'), [
+            'modes' => ['bus', 'metro', 'taxi', 'app'], 'departure_at' => '2026-10-30T23:30:00-03:00',
+        ]);
+
+        $this->assertSame([32, 2206], [$plans['fastest']['minutes'], $plans['fastest']['cost']]);
+        $this->assertSame([36, 1912], [$plans['cheapest']['minutes'], $plans['cheapest']['cost']]);
     }
 
     public function test_seeded_transport_mode_codes_match_the_enum_in_id_order(): void

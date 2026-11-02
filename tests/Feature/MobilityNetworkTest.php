@@ -33,8 +33,8 @@ class MobilityNetworkTest extends TestCase
             'connection inserted' => [fn () => DB::table('connections')->insert([
                 'from_stop_id' => DB::table('stops')->where('name', 'Boa Viagem')->value('id'),
                 'to_stop_id' => DB::table('stops')->where('name', 'Pina')->value('id'),
-                'transport_mode_id' => DB::table('transport_modes')->where('code', 'taxi')->value('id'),
-                'minutes' => 9, 'distance_meters' => 4500, 'boarding_fare_cents' => 1200,
+                'transport_mode_id' => DB::table('transport_modes')->where('code', 'walk')->value('id'),
+                'minutes' => 60, 'distance_meters' => 4500, 'boarding_fare_cents' => 0,
             ])],
             'connection deleted' => [fn () => DB::table('connections')->where('boarding_fare_cents', 1850)->delete()],
             'integration updated' => [fn () => DB::table('integrations')->update(['transfer_minutes' => 4])],
@@ -86,7 +86,7 @@ class MobilityNetworkTest extends TestCase
         $cached = Cache::get('mobility:network:'.$this->version());
         $this->assertIsArray($cached);
         $this->assertSame($cached, json_decode(json_encode($cached, JSON_THROW_ON_ERROR), true, 512, JSON_THROW_ON_ERROR));
-        $this->assertCount(52, $cached['connections']);
+        $this->assertCount(580, $cached['connections']);
     }
 
     private function version(): string

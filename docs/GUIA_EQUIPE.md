@@ -18,7 +18,7 @@ Espere a aplicação indicar a porta 8000. Abra http://localhost:8000 e crie uma
 
 1. Mostre o problema de mobilidade e o protótipo da AV1.
 2. Busque Boa Viagem → Recife Antigo e compare os critérios.
-3. Abra o trajeto de ônibus e metrô e explique por que os totais correspondem aos passos: na Joana Bezerra, o metrô aparece como integração tarifária, sem nova tarifa, e o trajeto custa R$ 3,80.
+3. Abra o trajeto de ônibus e metrô e explique por que os totais correspondem aos passos: na Joana Bezerra, o metrô aparece como integração tarifária, sem nova tarifa, e o trajeto custa R$ 3,80. As etapas aparecem como uma linha de transporte, com o horário em cada parada: saindo às 14h30, o embarque no 042 é às 14h36, a troca para o metrô na Joana Bezerra às 14h54 e a chegada ao Recife Antigo às 15h17.
 4. Consulte linhas e paradas, deixando claro que a carga é demonstrativa.
 5. Crie uma conta, salve um local e atualize preferências.
 6. Marque um tipo de necessidade no perfil e repita a busca Boa Viagem → Recife Antigo só com ônibus e metrô e saída às 14h30. O detalhe de cada etapa mostra o que ela atende e avisa quando há escada.

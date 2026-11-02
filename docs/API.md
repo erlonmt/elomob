@@ -119,7 +119,7 @@ Cada trajeto tem `id`, `criterion`, `total_minutes`, `total_cost_cents`, `total_
 `GET /trajetos/{id}` devolve o trajeto com as etapas e mais três campos:
 
 - `trip_search_id`: o id da busca;
-- `search`: origem, destino, saída e filtros da busca;
+- `search`: origem, destino, saída, filtros e `created_at` da busca. O detalhe calcula o horário em cada parada a partir de `departure_at` ou, numa busca para sair agora, de `created_at`;
 - `geojson`: uma `FeatureCollection` com uma `LineString` por etapa, com coordenadas no formato `[longitude, latitude]`.
 
 ### Favoritos

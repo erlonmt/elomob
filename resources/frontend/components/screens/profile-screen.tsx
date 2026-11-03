@@ -236,7 +236,7 @@ function ProfileForm({ user, onDeleted }: { user: User; onDeleted: () => void })
         </div>
         <h2>Configurações</h2>
         <div className="settings-card">
-          <Link href="/sobre" className="setting-row">
+          <Link href="/sobre#como-usar" className="setting-row">
             <span className="icon-tile">
               <Icon name="help" />
             </span>

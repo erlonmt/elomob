@@ -17,7 +17,7 @@ export function AboutScreen() {
           Escolha origem, destino e suas preferências para encontrar opções por tempo, custo,
           transferências e sustentabilidade.
         </p>
-        <h2>Como usar</h2>
+        <h2 id="como-usar">Como usar</h2>
         <ol>
           <li>Escolha origem e destino entre os locais cadastrados.</li>
           <li>Selecione os transportes e o horário de saída.</li>

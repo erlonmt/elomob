@@ -116,6 +116,6 @@ class MobilityNetworkTest extends TestCase
 
         return app(RoutePlanner::class)->plan($stops['Cordeiro'], $stops['Recife Antigo'], [
             'modes' => ['bus'], 'departure_at' => '2026-10-30T14:31:00-03:00',
-        ])['fastest']['minutes'];
+        ])['fastest']->minutes;
     }
 }

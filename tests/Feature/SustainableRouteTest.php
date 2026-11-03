@@ -29,7 +29,7 @@ class SustainableRouteTest extends TestCase
         ]);
         $sustainable = fn (): int => app(RoutePlanner::class)->plan($origin, $destination, [
             'modes' => ['bus'], 'departure_at' => '2026-10-30T12:00:00-03:00',
-        ])['sustainable']['steps'][0]['connection_id'];
+        ])['sustainable']->steps[0]['connection_id'];
 
         $this->assertSame($bus->id, $sustainable());
 
@@ -43,8 +43,8 @@ class SustainableRouteTest extends TestCase
         [$origin, $destination, $bus, $taxi] = $this->busAndRides();
         $plans = app(RoutePlanner::class)->plan($origin, $destination, ['modes' => ['bus', 'taxi'], 'departure_at' => '2026-10-30T12:00:00-03:00']);
 
-        $this->assertSame($taxi->id, $plans['fastest']['steps'][0]['connection_id']);
-        $this->assertSame($bus->id, $plans['sustainable']['steps'][0]['connection_id']);
+        $this->assertSame($taxi->id, $plans['fastest']->steps[0]['connection_id']);
+        $this->assertSame($bus->id, $plans['sustainable']->steps[0]['connection_id']);
     }
 
     public function test_when_every_route_takes_a_ride_the_fastest_one_sets_the_time_limit(): void
@@ -52,7 +52,7 @@ class SustainableRouteTest extends TestCase
         [$origin, $destination, , $taxi] = $this->busAndRides();
         $plans = app(RoutePlanner::class)->plan($origin, $destination, ['modes' => ['taxi', 'app'], 'departure_at' => '2026-10-30T12:00:00-03:00']);
 
-        $this->assertSame($taxi->id, $plans['sustainable']['steps'][0]['connection_id']);
+        $this->assertSame($taxi->id, $plans['sustainable']->steps[0]['connection_id']);
     }
 
     /**

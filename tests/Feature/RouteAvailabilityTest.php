@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Services\Routing\Plan;
 use App\Services\Routing\RoutePlanner;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -38,21 +39,21 @@ class RouteAvailabilityTest extends TestCase
     {
         $plan = $this->busPlans('2026-10-30T04:00:00-03:00')['fastest'];
 
-        $this->assertSame(140, $plan['minutes']);
+        $this->assertSame(140, $plan->minutes);
         // The BRT leaves Cordeiro at 05:40, ten minutes after Terminal Integrado CDU; line 081 leaves at 05:48 and
         // arrives at the same time.
-        $this->assertSame([100, 0, 0], array_column($plan['steps'], 'wait_minutes'));
+        $this->assertSame([100, 0, 0], array_column($plan->steps, 'wait_minutes'));
     }
 
     public function test_frequency_wait_is_counted_once_when_continuing_on_the_same_line(): void
     {
         $plan = $this->busPlans('2026-10-30T14:31:00-03:00')['fastest'];
 
-        $this->assertSame(34, $plan['minutes']);
-        $this->assertSame(380, $plan['cost']);
-        $this->assertSame(0, $plan['transfers']);
-        $this->assertSame([2, 0, 0], array_column($plan['steps'], 'wait_minutes'));
-        $this->assertSame($plan['minutes'], array_sum(array_column($plan['steps'], 'minutes')));
+        $this->assertSame(34, $plan->minutes);
+        $this->assertSame(380, $plan->cost);
+        $this->assertSame(0, $plan->transfers);
+        $this->assertSame([2, 0, 0], array_column($plan->steps, 'wait_minutes'));
+        $this->assertSame($plan->minutes, array_sum(array_column($plan->steps, 'minutes')));
         $this->assertEquals($plan, $this->busPlans('2026-10-30T17:31:00Z')['fastest']);
     }
 
@@ -72,8 +73,8 @@ class RouteAvailabilityTest extends TestCase
         $this->withoutLines('BRT');
         $plan = $this->busPlans('2026-10-31T01:31:00-03:00')['fastest'];
 
-        $this->assertSame(34, $plan['minutes']);
-        $this->assertSame(1190, $this->busPlans('2026-10-31T03:00:00-03:00')['fastest']['minutes']);
+        $this->assertSame(34, $plan->minutes);
+        $this->assertSame(1190, $this->busPlans('2026-10-31T03:00:00-03:00')['fastest']->minutes);
     }
 
     public function test_an_earlier_costlier_arrival_is_preserved_to_catch_the_last_service(): void
@@ -97,9 +98,9 @@ class RouteAvailabilityTest extends TestCase
             'modes' => ['bus', 'metro', 'taxi'], 'departure_at' => '2026-10-30T14:30:00-03:00',
         ])['cheapest'];
 
-        $this->assertSame(1160, $plan['cost']);
-        $this->assertSame(34, $plan['minutes']);
-        $this->assertEquals($taxi, $plan['steps'][0]['connection_id']);
+        $this->assertSame(1160, $plan->cost);
+        $this->assertSame(34, $plan->minutes);
+        $this->assertEquals($taxi, $plan->steps[0]['connection_id']);
     }
 
     public function test_an_earlier_cheaper_arrival_can_wait_for_a_line_to_open(): void
@@ -125,9 +126,9 @@ class RouteAvailabilityTest extends TestCase
             'modes' => ['bus', 'metro', 'taxi'], 'departure_at' => '2026-10-30T14:30:00-03:00',
         ])['cheapest'];
 
-        $this->assertSame(260, $plan['cost']);
-        $this->assertSame(37, $plan['minutes']);
-        $this->assertSame([0, 0, 3, 0], array_column($plan['steps'], 'wait_minutes'));
+        $this->assertSame(260, $plan->cost);
+        $this->assertSame(37, $plan->minutes);
+        $this->assertSame([0, 0, 3, 0], array_column($plan->steps, 'wait_minutes'));
     }
 
     public function test_changing_modes_at_an_integration_spends_its_transfer_time_before_boarding(): void
@@ -135,17 +136,17 @@ class RouteAvailabilityTest extends TestCase
         $this->withoutLines('061');
         $plan = $this->busAndMetroPlans()['fastest'];
 
-        $this->assertSame([0, 3, 0], array_column($plan['steps'], 'transfer_minutes'));
-        $this->assertSame([6, 3, 0], array_column($plan['steps'], 'wait_minutes'));
-        $this->assertSame([24, 16, 7], array_column($plan['steps'], 'minutes'));
-        $this->assertSame(47, $plan['minutes']);
+        $this->assertSame([0, 3, 0], array_column($plan->steps, 'transfer_minutes'));
+        $this->assertSame([6, 3, 0], array_column($plan->steps, 'wait_minutes'));
+        $this->assertSame([24, 16, 7], array_column($plan->steps, 'minutes'));
+        $this->assertSame(47, $plan->minutes);
 
         DB::table('integrations')->where('stop_id', $this->stop('Estação Joana Bezerra'))->update(['transfer_minutes' => 8]);
         $plan = $this->busAndMetroPlans()['fastest'];
 
-        $this->assertSame([0, 8, 0], array_column($plan['steps'], 'transfer_minutes'));
-        $this->assertSame([6, 8, 0], array_column($plan['steps'], 'wait_minutes'));
-        $this->assertSame(57, $plan['minutes']);
+        $this->assertSame([0, 8, 0], array_column($plan->steps, 'transfer_minutes'));
+        $this->assertSame([6, 8, 0], array_column($plan->steps, 'wait_minutes'));
+        $this->assertSame(57, $plan->minutes);
     }
 
     public function test_with_two_lines_on_the_same_stretch_each_criterion_picks_its_own(): void
@@ -162,12 +163,12 @@ class RouteAvailabilityTest extends TestCase
         ]);
 
         $plans = $this->busAndMetroPlans();
-        $firstLine = fn (array $plan): int => (int) DB::table('connections')->where('id', $plan['steps'][0]['connection_id'])->value('line_id');
+        $firstLine = fn (Plan $plan): int => (int) DB::table('connections')->where('id', $plan->steps[0]['connection_id'])->value('line_id');
 
         $this->assertSame($express, $firstLine($plans['fastest']));
-        $this->assertSame([37, 450], [$plans['fastest']['minutes'], $plans['fastest']['cost']]);
+        $this->assertSame([37, 450], [$plans['fastest']->minutes, $plans['fastest']->cost]);
         $this->assertSame((int) DB::table('lines')->where('code', '042')->value('id'), $firstLine($plans['cheapest']));
-        $this->assertSame([47, 380], [$plans['cheapest']['minutes'], $plans['cheapest']['cost']]);
+        $this->assertSame([47, 380], [$plans['cheapest']->minutes, $plans['cheapest']->cost]);
     }
 
     public function test_the_return_trip_spends_the_transfer_time_of_the_reverse_integration(): void
@@ -177,9 +178,9 @@ class RouteAvailabilityTest extends TestCase
         ])['fastest'];
 
         $this->assertSame(['Estação Recife', 'Estação Joana Bezerra', 'Boa Viagem'], $this->visitedStops($plan));
-        $this->assertSame([0, 0, 3], array_column($plan['steps'], 'transfer_minutes'));
-        $this->assertSame([0, 3, 7], array_column($plan['steps'], 'wait_minutes'));
-        $this->assertSame(48, $plan['minutes']);
+        $this->assertSame([0, 0, 3], array_column($plan->steps, 'transfer_minutes'));
+        $this->assertSame([0, 3, 7], array_column($plan->steps, 'wait_minutes'));
+        $this->assertSame(48, $plan->minutes);
     }
 
     public function test_accessible_trips_avoid_inaccessible_integrations_and_stops_without_passing_a_stop_twice(): void
@@ -228,7 +229,7 @@ class RouteAvailabilityTest extends TestCase
      * Plans from Boa Viagem to Recife Antigo by bus and metro, leaving at 14:30.
      *
      * @param  array<string, mixed>  $filters
-     * @return array<string, array<string, mixed>>
+     * @return array<string, Plan>
      */
     private function busAndMetroPlans(array $filters = []): array
     {
@@ -240,18 +241,17 @@ class RouteAvailabilityTest extends TestCase
     /**
      * Names of the stops a plan arrives at, in order.
      *
-     * @param  array<string, mixed>  $plan
      * @return list<string>
      */
-    private function visitedStops(array $plan): array
+    private function visitedStops(Plan $plan): array
     {
         $names = DB::table('connections')->join('stops', 'stops.id', '=', 'connections.to_stop_id')
-            ->whereIn('connections.id', array_column($plan['steps'], 'connection_id'))->pluck('stops.name', 'connections.id');
+            ->whereIn('connections.id', array_column($plan->steps, 'connection_id'))->pluck('stops.name', 'connections.id');
 
-        return array_map(fn (array $step): string => $names[$step['connection_id']], $plan['steps']);
+        return array_map(fn (array $step): string => $names[$step['connection_id']], $plan->steps);
     }
 
-    /** @return array<string, array<string, mixed>> */
+    /** @return array<string, Plan> */
     private function busPlans(string $departure): array
     {
         return app(RoutePlanner::class)->plan($this->stop('Cordeiro'), $this->stop('Recife Antigo'), [

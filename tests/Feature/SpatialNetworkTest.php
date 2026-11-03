@@ -33,8 +33,8 @@ class SpatialNetworkTest extends TestCase
         $destination = (int) DB::table('stops')->where('name', 'Recife Antigo')->value('id');
         $plan = app(RoutePlanner::class)->plan($origin, $destination, ['modes' => ['bus'], 'departure_at' => '2026-10-30T14:31:00-03:00'])['fastest'];
         $searchId = DB::table('trip_searches')->insertGetId(['session_hash' => str_repeat('a', 64), 'origin_id' => $origin, 'destination_id' => $destination, 'filters' => '{}', 'created_at' => now(), 'updated_at' => now()]);
-        $itineraryId = DB::table('itineraries')->insertGetId(['trip_search_id' => $searchId, 'criterion' => 'fastest', 'total_minutes' => $plan['minutes'], 'total_cost_cents' => $plan['cost'], 'total_distance_meters' => $plan['distance'], 'transfers' => $plan['transfers']]);
-        foreach ($plan['steps'] as $index => $step) {
+        $itineraryId = DB::table('itineraries')->insertGetId(['trip_search_id' => $searchId, 'criterion' => 'fastest', 'total_minutes' => $plan->minutes, 'total_cost_cents' => $plan->cost, 'total_distance_meters' => $plan->distance, 'transfers' => $plan->transfers]);
+        foreach ($plan->steps as $index => $step) {
             DB::table('itinerary_steps')->insert($step + ['itinerary_id' => $itineraryId, 'sequence' => $index + 1]);
         }
 

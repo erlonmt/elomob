@@ -29,7 +29,7 @@ class LineScheduleTest extends TestCase
 
         $plan = app(RoutePlanner::class)->plan($second, $third, ['modes' => ['bus'], 'departure_at' => '2026-10-30T06:05:00-03:00']);
 
-        $this->assertSame(5, $plan['fastest']['steps'][0]['wait_minutes']);
+        $this->assertSame(5, $plan['fastest']->steps[0]['wait_minutes']);
     }
 
     public function test_the_lines_list_their_stops_in_order_each_way_with_the_minutes_from_the_first(): void

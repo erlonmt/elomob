@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Connection;
+use App\Services\Routing\Plan;
 use App\Services\Routing\RoutePlanner;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -22,7 +23,7 @@ class PublicTransportOptionTest extends TestCase
         $this->assertSame(['taxi'], $this->modes($plans['fastest']));
         $this->assertSame(['walk', 'bike'], $this->modes($plans['cheapest']));
         $this->assertSame(['bus', 'metro', 'walk'], $this->modes($plans['public_transport']));
-        $this->assertSame([47, 380], [$plans['public_transport']['minutes'], $plans['public_transport']['cost']]);
+        $this->assertSame([47, 380], [$plans['public_transport']->minutes, $plans['public_transport']->cost]);
     }
 
     public function test_no_extra_option_when_a_criterion_already_chose_public_transport_or_none_runs(): void
@@ -35,7 +36,7 @@ class PublicTransportOptionTest extends TestCase
      * Plan Boa Viagem → Recife Antigo at 14:30 with the given modes.
      *
      * @param  list<'bus'|'metro'|'bike'|'taxi'|'app'>  $modes
-     * @return array<string, array{minutes: int, cost: int, distance: int, transfers: int, impact: int, steps: list<array{connection_id: int}>}>
+     * @return array<string, Plan>
      */
     private function plans(array $modes): array
     {
@@ -47,13 +48,12 @@ class PublicTransportOptionTest extends TestCase
     /**
      * The modes of a plan's steps, each once, in travel order.
      *
-     * @param  array{steps: list<array{connection_id: int}>}  $plan
      * @return list<string>
      */
-    private function modes(array $plan): array
+    private function modes(Plan $plan): array
     {
-        $connections = Connection::with('mode')->findMany(array_column($plan['steps'], 'connection_id'))->keyBy('id');
+        $connections = Connection::with('mode')->findMany(array_column($plan->steps, 'connection_id'))->keyBy('id');
 
-        return array_values(array_unique(array_map(fn (array $step): string => $connections[$step['connection_id']]->mode->code, $plan['steps'])));
+        return array_values(array_unique(array_map(fn (array $step): string => $connections[$step['connection_id']]->mode->code, $plan->steps)));
     }
 }

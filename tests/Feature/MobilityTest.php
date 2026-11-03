@@ -53,9 +53,9 @@ class MobilityTest extends TestCase
     public function test_continuing_on_the_same_bus_does_not_charge_three_fares(): void
     {
         $plans = app(RoutePlanner::class)->plan($this->stop('Cordeiro'), $this->stop('Recife Antigo'), ['modes' => ['bus']]);
-        $this->assertEquals(380, $plans['cheapest']['cost']);
-        $this->assertEquals(35, $plans['cheapest']['minutes']);
-        $this->assertEquals(0, $plans['cheapest']['transfers']);
+        $this->assertEquals(380, $plans['cheapest']->cost);
+        $this->assertEquals(35, $plans['cheapest']->minutes);
+        $this->assertEquals(0, $plans['cheapest']->transfers);
     }
 
     public function test_the_fare_charged_on_a_line_is_the_fare_of_the_line(): void
@@ -64,13 +64,13 @@ class MobilityTest extends TestCase
 
         $plans = app(RoutePlanner::class)->plan($this->stop('Cordeiro'), $this->stop('Recife Antigo'), ['modes' => ['bus']]);
 
-        $this->assertSame(450, $plans['cheapest']['cost']);
-        $this->assertSame([450, 0, 0], array_column($plans['cheapest']['steps'], 'cost_cents'));
+        $this->assertSame(450, $plans['cheapest']->cost);
+        $this->assertSame([450, 0, 0], array_column($plans['cheapest']->steps, 'cost_cents'));
     }
 
     public function test_filters_and_accessibility_change_actual_calculation(): void
     {
-        $fastest = fn (array $filters): int => app(RoutePlanner::class)->plan($this->stop('Boa Viagem'), $this->stop('Recife Antigo'), $filters)['fastest']['minutes'];
+        $fastest = fn (array $filters): int => app(RoutePlanner::class)->plan($this->stop('Boa Viagem'), $this->stop('Recife Antigo'), $filters)['fastest']->minutes;
 
         $this->assertSame(47, $fastest(['modes' => ['bus', 'metro']]));
         $this->assertSame(52, $fastest(['modes' => ['bus']]));
@@ -121,7 +121,7 @@ class MobilityTest extends TestCase
             'from_stop_id' => $first, 'to_stop_id' => $last, 'transport_mode_id' => $modes['taxi'], 'minutes' => 18, 'distance_meters' => 5500, 'boarding_fare_cents' => 1600,
         ]);
 
-        $this->assertSame([18, 1600], [$plans()['fastest']['minutes'], $plans()['fastest']['cost']]);
+        $this->assertSame([18, 1600], [$plans()['fastest']->minutes, $plans()['fastest']->cost]);
     }
 
     public function test_late_at_night_taxi_and_app_still_reach_the_destination(): void
@@ -130,8 +130,8 @@ class MobilityTest extends TestCase
             'modes' => ['bus', 'metro', 'taxi', 'app'], 'departure_at' => '2026-10-30T23:30:00-03:00',
         ]);
 
-        $this->assertSame([32, 2206], [$plans['fastest']['minutes'], $plans['fastest']['cost']]);
-        $this->assertSame([36, 1912], [$plans['cheapest']['minutes'], $plans['cheapest']['cost']]);
+        $this->assertSame([32, 2206], [$plans['fastest']->minutes, $plans['fastest']->cost]);
+        $this->assertSame([36, 1912], [$plans['cheapest']->minutes, $plans['cheapest']->cost]);
     }
 
     public function test_seeded_transport_mode_codes_match_the_enum_in_id_order(): void

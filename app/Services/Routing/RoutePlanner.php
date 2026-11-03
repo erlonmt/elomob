@@ -34,7 +34,7 @@ class RoutePlanner
      * integrations.
      *
      * @param  array{modes: array<int, value-of<TransportModeCode>>, departure_at?: ?string, accessibility_needs?: list<value-of<AccessibilityNeed>>}  $filters
-     * @return array<value-of<RouteCriterion>, array{minutes: int, cost: int, distance: int, transfers: int, impact: int, steps: list<array{connection_id: int, minutes: int, transfer_minutes: int, wait_minutes: int, cost_cents: int, fare_integrated: bool, distance_meters: int}>}>
+     * @return array<value-of<RouteCriterion>, Plan>
      */
     public function plan(int $origin, int $destination, array $filters): array
     {
@@ -68,14 +68,7 @@ class RoutePlanner
                 ->first();
             if ($best !== null) {
                 $chosen[] = $best;
-                $plans[$criterion->value] = [
-                    'minutes' => $best->minutes,
-                    'cost' => $best->cost,
-                    'distance' => $best->distance,
-                    'transfers' => $best->transfers,
-                    'impact' => $best->impact,
-                    'steps' => $best->steps(),
-                ];
+                $plans[$criterion->value] = Plan::fromArrival($best);
             }
         }
 

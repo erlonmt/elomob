@@ -40,15 +40,15 @@ class TripSearchService
             foreach ($plans as $criterion => $plan) {
                 $itinerary = $search->itineraries()->create([
                     'criterion' => $criterion,
-                    'total_minutes' => $plan['minutes'],
-                    'total_cost_cents' => $plan['cost'],
-                    'total_distance_meters' => $plan['distance'],
-                    'transfers' => $plan['transfers'],
+                    'total_minutes' => $plan->minutes,
+                    'total_cost_cents' => $plan->cost,
+                    'total_distance_meters' => $plan->distance,
+                    'transfers' => $plan->transfers,
                 ]);
                 $itinerary->steps()->createMany(array_map(
                     fn (array $step, int $index): array => $step + ['sequence' => $index + 1],
-                    $plan['steps'],
-                    array_keys($plan['steps']),
+                    $plan->steps,
+                    array_keys($plan->steps),
                 ));
             }
 

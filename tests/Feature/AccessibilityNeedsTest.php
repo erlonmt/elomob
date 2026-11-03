@@ -235,10 +235,10 @@ class AccessibilityNeedsTest extends TestCase
             ->join('stops', 'stops.id', '=', 'connections.to_stop_id')
             ->join('transport_modes', 'transport_modes.id', '=', 'connections.transport_mode_id')
             ->leftJoin('lines', 'lines.id', '=', 'connections.line_id')
-            ->whereIn('connections.id', array_column($plans['fastest']['steps'], 'connection_id'))
+            ->whereIn('connections.id', array_column($plans['fastest']->steps, 'connection_id'))
             ->selectRaw("connections.id, COALESCE(lines.code, transport_modes.code) || ':' || stops.name AS step")
             ->pluck('step', 'id');
 
-        return array_map(fn (array $step): string => $steps[$step['connection_id']], $plans['fastest']['steps']);
+        return array_map(fn (array $step): string => $steps[$step['connection_id']], $plans['fastest']->steps);
     }
 }

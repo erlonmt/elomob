@@ -6,6 +6,7 @@ use App\Models\Connection;
 use App\Models\Integration;
 use App\Models\Line;
 use App\Models\Stop;
+use App\Services\Routing\Plan;
 use App\Services\Routing\RoutePlanner;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -22,10 +23,10 @@ class FareIntegrationTest extends TestCase
         $plan = $this->busAndMetroPlans('Boa Viagem', 'Recife Antigo')['fastest'];
 
         $this->assertSame(['Estação Joana Bezerra', 'Estação Recife', 'Recife Antigo'], $this->visitedStops($plan));
-        $this->assertSame([380, 0, 0], array_column($plan['steps'], 'cost_cents'));
-        $this->assertSame([false, true, false], array_column($plan['steps'], 'fare_integrated'));
-        $this->assertSame(380, $plan['cost']);
-        $this->assertSame(1, $plan['transfers']);
+        $this->assertSame([380, 0, 0], array_column($plan->steps, 'cost_cents'));
+        $this->assertSame([false, true, false], array_column($plan->steps, 'fare_integrated'));
+        $this->assertSame(380, $plan->cost);
+        $this->assertSame(1, $plan->transfers);
     }
 
     public function test_a_cheaper_first_fare_is_topped_up_to_the_higher_one(): void
@@ -33,9 +34,9 @@ class FareIntegrationTest extends TestCase
         $plan = $this->busAndMetroPlans('Recife Antigo', 'Boa Viagem')['fastest'];
 
         $this->assertSame(['Estação Recife', 'Estação Joana Bezerra', 'Boa Viagem'], $this->visitedStops($plan));
-        $this->assertSame([0, 160, 220], array_column($plan['steps'], 'cost_cents'));
-        $this->assertSame([false, false, true], array_column($plan['steps'], 'fare_integrated'));
-        $this->assertSame(380, $plan['cost']);
+        $this->assertSame([0, 160, 220], array_column($plan->steps, 'cost_cents'));
+        $this->assertSame([false, false, true], array_column($plan->steps, 'fare_integrated'));
+        $this->assertSame(380, $plan->cost);
     }
 
     public function test_an_integration_without_fare_integration_charges_the_full_fare(): void
@@ -44,9 +45,9 @@ class FareIntegrationTest extends TestCase
 
         $plan = $this->busAndMetroPlans('Boa Viagem', 'Recife Antigo')['fastest'];
 
-        $this->assertSame([380, 160, 0], array_column($plan['steps'], 'cost_cents'));
-        $this->assertSame([false, false, false], array_column($plan['steps'], 'fare_integrated'));
-        $this->assertSame(540, $plan['cost']);
+        $this->assertSame([380, 160, 0], array_column($plan->steps, 'cost_cents'));
+        $this->assertSame([false, false, false], array_column($plan->steps, 'fare_integrated'));
+        $this->assertSame(540, $plan->cost);
     }
 
     public function test_walking_into_an_integrated_terminal_pays_the_full_fare(): void
@@ -54,9 +55,9 @@ class FareIntegrationTest extends TestCase
         $plan = $this->busAndMetroPlans('Casa Amarela', 'Estação Recife')['cheapest'];
 
         $this->assertSame(['Graças', 'Derby', 'Afogados', 'Estação Joana Bezerra', 'Estação Recife'], $this->visitedStops($plan));
-        $this->assertSame([380, 0, 0, 0, 160], array_column($plan['steps'], 'cost_cents'));
-        $this->assertSame([false, false, false, false, false], array_column($plan['steps'], 'fare_integrated'));
-        $this->assertSame(540, $plan['cost']);
+        $this->assertSame([380, 0, 0, 0, 160], array_column($plan->steps, 'cost_cents'));
+        $this->assertSame([false, false, false, false, false], array_column($plan->steps, 'fare_integrated'));
+        $this->assertSame(540, $plan->cost);
     }
 
     /**
@@ -85,8 +86,8 @@ class FareIntegrationTest extends TestCase
 
         $plan = app(RoutePlanner::class)->plan($a, $d, ['modes' => ['bus', 'metro', 'taxi'], 'departure_at' => '2026-10-30T12:00:00-03:00'])['cheapest'];
 
-        $this->assertSame([300, 0, 80], array_column($plan['steps'], 'cost_cents'));
-        $this->assertSame(380, $plan['cost']);
+        $this->assertSame([300, 0, 80], array_column($plan->steps, 'cost_cents'));
+        $this->assertSame(380, $plan->cost);
     }
 
     private function stop(string $name): int
@@ -97,7 +98,7 @@ class FareIntegrationTest extends TestCase
     /**
      * Plans between two stops of the demonstration network by bus and metro, leaving at 14:30.
      *
-     * @return array<string, array<string, mixed>>
+     * @return array<string, Plan>
      */
     private function busAndMetroPlans(string $origin, string $destination): array
     {
@@ -109,14 +110,13 @@ class FareIntegrationTest extends TestCase
     /**
      * Names of the stops a plan arrives at, in order.
      *
-     * @param  array<string, mixed>  $plan
      * @return list<string>
      */
-    private function visitedStops(array $plan): array
+    private function visitedStops(Plan $plan): array
     {
         $names = DB::table('connections')->join('stops', 'stops.id', '=', 'connections.to_stop_id')
-            ->whereIn('connections.id', array_column($plan['steps'], 'connection_id'))->pluck('stops.name', 'connections.id');
+            ->whereIn('connections.id', array_column($plan->steps, 'connection_id'))->pluck('stops.name', 'connections.id');
 
-        return array_map(fn (array $step): string => $names[$step['connection_id']], $plan['steps']);
+        return array_map(fn (array $step): string => $names[$step['connection_id']], $plan->steps);
     }
 }

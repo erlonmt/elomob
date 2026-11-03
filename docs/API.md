@@ -62,7 +62,9 @@ Na coluna Login, "Dono" quer dizer que não é preciso entrar, mas só quem fez 
 | GET | `/historico` | Sim | As 20 buscas mais recentes da conta | 200, buscas sem `itineraries` |
 | DELETE | `/historico` | Sim | Apaga todas as buscas da conta, com trajetos e etapas; os favoritos ficam | 200, `{"data": {"deleted": 3}}`, com o número de buscas apagadas |
 
-Fora do prefixo, `GET /up` é a verificação de saúde do Laravel. O Docker Compose a usa para saber quando a API está pronta.
+Fora do prefixo, `GET /up` é a verificação de saúde do Laravel. Ela também consulta o banco e o cache (o Redis, no Docker) e responde 500 quando um deles não responde. O Docker Compose a usa para saber quando a API está pronta.
+
+Toda resposta traz `X-Request-Id`, o id da requisição, que também acompanha cada linha de log escrita ao atendê-la. No Docker, o nginx da entrada cria o id, e os logs de acesso do nginx e o log do Laravel o mostram. Um id recebido só é mantido se tiver de 8 a 64 letras, algarismos ou hífens.
 
 ## Entradas e respostas
 
@@ -97,7 +99,7 @@ A caminhada (`walk`) não é uma opção de busca, porque as conexões a pé sem
 
 `/paradas` também aceita `latitude` e `longitude`, sempre juntas, e `radius`, em metros, de 100 a 20000, com padrão de 1000. Com coordenadas, só voltam as paradas dentro do raio, da mais próxima para a mais distante, cada uma com `distance_meters`. A distância é calculada pelo PostGIS.
 
-Uma parada tem `id`, `name`, `address`, `latitude`, `longitude`, `accessible` (acesso sem degraus), `tactile_paving` (piso tátil), `visual_signs` (painel de informações), `bikes_available`, `docks_available` (bicicletas e vagas, nulos onde não há bicicleta compartilhada), `mode`, `mode_name` e `color`. Uma linha tem `id`, `code`, `name`, `starts_at`, `ends_at`, `frequency_minutes`, `fare_cents`, `mode`, `mode_name` e `color`. Uma integração tem a parada (`stop_id`, `name`, `latitude`, `longitude`), os modais de origem e destino da troca (`from_mode`, `to_mode` e seus nomes), `transfer_minutes`, `accessible`, `fare_integrated` (a troca cobra só a diferença até a tarifa mais alta) e `description`.
+Uma parada tem `id`, `name`, `address`, `latitude`, `longitude`, `accessible` (acesso sem degraus), `tactile_paving` (piso tátil), `visual_signs` (painel de informações), `bikes_available`, `docks_available` (bicicletas e vagas, nulos onde não há bicicleta compartilhada), `mode`, `mode_name` e `color`. Uma linha tem `id`, `code`, `name`, `starts_at`, `ends_at`, `frequency_minutes`, `fare_cents`, `mode`, `mode_name`, `color` e `directions`, os dois sentidos em que ela roda: cada um com `to` (a última parada) e `stops`, as paradas em ordem com `id`, `name` e `minutes`, os minutos desde a primeira parada. Os veículos saem da primeira parada nos horários da linha e passam pelas seguintes esses minutos depois. O sentido que termina na parada do fim do nome da linha vem primeiro. Uma linha cujos trechos não formam um caminho único vem com `directions` vazio. Uma integração tem a parada (`stop_id`, `name`, `latitude`, `longitude`), os modais de origem e destino da troca (`from_mode`, `to_mode` e seus nomes), `transfer_minutes`, `accessible`, `fare_integrated` (a troca cobra só a diferença até a tarifa mais alta) e `description`.
 
 ### Buscas
 

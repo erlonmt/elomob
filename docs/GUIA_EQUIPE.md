@@ -32,7 +32,7 @@ Trajeto mais rápido de Boa Viagem ao Recife Antigo (ônibus e metrô, saída à
 | --- | --- | --- |
 | Nenhum | 042 até Joana Bezerra, Linha Centro até a Estação Recife e caminhada | É o mais rápido |
 | Mobilidade reduzida | 042 até Joana Bezerra, **Linha Sul** até a Estação Recife e caminhada | A plataforma da Linha Centro só tem escada; a da Linha Sul tem elevador |
-| Deficiência visual | 042, caminhada até Afogados, 033 até o Derby e 081 até o Recife Antigo | A travessia da Estação Recife não tem semáforo sonoro, e o Cais de Santa Rita não tem piso tátil |
+| Deficiência visual | 042, caminhada até Afogados, 033 até o Derby, BRT até a Boa Vista e caminhada | A travessia da Estação Recife não tem semáforo sonoro, e o Cais de Santa Rita não tem piso tátil. No Derby, o BRT passa às 15h24 e a 081 às 15h32; os dois chegam às 15h50 |
 | Cadeira de rodas | **061 pela Via Mangue** até o Cais de Santa Rita e caminhada | A entrada da Estação Recife tem degraus, e a 033 não tem elevador |
 | Deficiência auditiva | **061 pela Via Mangue** até o Cais de Santa Rita e caminhada | A 042 não tem letreiro |
 
@@ -56,9 +56,11 @@ Antes de enviar, rode os testes. As imagens do Docker copiam o código em vez de
 docker compose up --build -d
 docker compose run --rm --build test
 docker compose run --rm test composer test:pgsql
+docker compose run --rm test composer analyse
 cd resources/frontend
 npm ci
 npm run typecheck
+npm run lint
 npm test
 ```
 

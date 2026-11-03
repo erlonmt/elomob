@@ -87,20 +87,26 @@ Os scripts SQL são uma alternativa às migrations em um banco vazio. Para o uso
 ```bash
 docker compose run --rm --build test
 docker compose run --rm test composer test:pgsql
+docker compose run --rm test composer analyse
 ```
 
 A imagem da API não leva os pacotes de desenvolvimento, então os testes rodam no serviço `test`, construído com eles a partir do mesmo `Dockerfile`. O primeiro comando roda `composer test`. `composer test` roda a suíte em SQLite e cache em memória. Os testes que dependem do PostgreSQL (restrições CHECK, PostGIS e `jsonb`) ficam ignorados nela.
 
 `composer test:pgsql` roda a mesma suíte no PostgreSQL com PostGIS, no banco descartável `elomob_test`, que é criado e migrado automaticamente se ainda não existir. A configuração fica em `phpunit.pgsql.xml`. Sem Docker, o comando usa o host, o usuário e a senha do `.env`, e esse usuário precisa poder criar bancos e habilitar o PostGIS. Nenhum dos dois comandos usa o banco da aplicação, e os testes não devem ser configurados para usá-lo.
 
+`composer analyse` roda a análise estática do Larastan (PHPStan para Laravel), no nível 6, configurada em `phpstan.neon`.
+
 Para conferir o frontend:
 
 ```bash
 cd resources/frontend
 npm run typecheck
+npm run lint
 npm test
 npm run build
 ```
+
+`npm run lint` roda o ESLint com as regras do Next.js para React, hooks, acessibilidade e TypeScript (`eslint.config.mjs`).
 
 Os testes de ponta a ponta usam o Playwright contra a aplicação inteira, com o Compose rodando. Na primeira vez, instale os navegadores do Playwright:
 
@@ -112,7 +118,7 @@ npm run test:e2e
 
 Eles percorrem a jornada de visitante, a conta inteira (cadastro, necessidade de acessibilidade, favorito, histórico, troca de senha e exclusão) e o mapa, no Chrome de desktop, no Firefox e num celular emulado. Os tiles do mapa são respondidos pelos próprios testes, sem acessar o OpenStreetMap. Cada execução cria e exclui a própria conta e deixa algumas buscas de visitante, que a limpeza diária apaga depois de uma semana. Para testar outro endereço, use `E2E_BASE_URL`.
 
-O GitHub Actions (`.github/workflows/ci.yml`) roda essas verificações a cada envio para a `main` e em cada pull request: Pint, as duas suítes PHP, TypeScript, testes e build do frontend, e o Docker Compose subindo do zero, com o frontend, o proxy e a API respondendo e os testes de ponta a ponta.
+O GitHub Actions (`.github/workflows/ci.yml`) roda essas verificações a cada envio para a `main` e em cada pull request: Pint, Larastan, as duas suítes PHP, TypeScript, ESLint, testes e build do frontend, e o Docker Compose subindo do zero, com o frontend, o proxy e a API respondendo e os testes de ponta a ponta.
 
 O relatório detalha a validação em `docs/VALIDACAO.md`.
 

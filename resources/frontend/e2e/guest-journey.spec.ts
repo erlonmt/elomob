@@ -9,8 +9,10 @@ test('a guest plans a bus and metro trip and pays a single fare at the integrate
     modes: ['Ônibus', 'Metrô'],
   });
 
+  await expect(page.getByText('Saída amanhã às 14:30.')).toBeVisible();
   const fastest = page.getByRole('link').filter({ hasText: 'Mais rápida' });
   await expect(fastest).toContainText('47 min');
+  await expect(fastest).toContainText('Chegada às 15:17');
   await expect(fastest).toContainText(/R\$\s3,80/);
   await expect(fastest).toContainText('Ônibus 042 → Metrô CENTRO → Caminhada');
 

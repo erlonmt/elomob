@@ -7,11 +7,14 @@ import { DemoNote, Empty, Loading, Notice, PageHeader } from '@/components/ui';
 import { needTitles } from '@/lib/accessibility';
 import { searchQuery } from '@/lib/geo';
 import { routeOptions } from '@/lib/itineraries';
+import { departureLabel } from '@/lib/schedule';
 import type { Search } from '@/lib/types';
 
 export function ResultsScreen({ id }: { id: string }) {
   const { data: search, loading, error, reload } = useApiData<Search>(`/buscas/${id}`);
   const options = routeOptions(search?.itineraries ?? []);
+  const departureAt = search?.departure_at ?? search?.created_at;
+  const departure = departureAt ? new Date(departureAt) : null;
   const needs = needTitles(search?.filters.accessibility_needs ?? []);
   return (
     <>
@@ -40,6 +43,9 @@ export function ResultsScreen({ id }: { id: string }) {
                   Alterar busca
                 </Link>
               </div>
+              {departure && (
+                <p className="departure-note">{departureLabel(departure, new Date())}.</p>
+              )}
               {needs.length > 0 && (
                 <p className="preference-note">Acessibilidade considerada: {needs.join(', ')}.</p>
               )}
@@ -50,6 +56,7 @@ export function ResultsScreen({ id }: { id: string }) {
                       key={option.itinerary.id}
                       itinerary={option.itinerary}
                       criteria={option.criteria}
+                      departure={departure}
                     />
                   ))}
                 </div>

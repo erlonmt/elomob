@@ -1,6 +1,13 @@
 import { strict as assert } from 'node:assert';
 import test from 'node:test';
-import { clockTime, upcomingTrips, recifeTime, serviceHoursNotice } from '../lib/schedule.ts';
+import {
+  arrivalLabel,
+  departureLabel,
+  clockTime,
+  upcomingTrips,
+  recifeTime,
+  serviceHoursNotice,
+} from '../lib/schedule.ts';
 
 const lines = [
   { mode: 'bus', starts_at: '05:00:00', ends_at: '23:00:00' },
@@ -83,4 +90,23 @@ test('a line running past midnight keeps the previous night trips until they end
     upcomingTrips(night, 10, at('03:00'), 1).map(trip => [clockTime(trip.minute), trip.tomorrow]),
     [['22:00', false]],
   );
+});
+
+test('the departure of a search is told relative to today, in Recife', () => {
+  const now = at('20:00');
+  assert.equal(departureLabel(at('20:15'), now), 'Saída hoje às 20:15');
+  assert.equal(departureLabel(new Date('2026-11-04T14:30:00-03:00'), now), 'Saída amanhã às 14:30');
+  assert.equal(
+    departureLabel(new Date('2026-11-06T08:00:00-03:00'), now),
+    'Saída em 06/11 às 08:00',
+  );
+  assert.equal(
+    departureLabel(new Date('2026-11-02T08:00:00-03:00'), now),
+    'Saída em 02/11 às 08:00',
+  );
+});
+
+test('the arrival says the clock time, and when it is on the day after the departure', () => {
+  assert.equal(arrivalLabel(at('14:30'), 47), 'Chegada às 15:17');
+  assert.equal(arrivalLabel(at('23:40'), 35), 'Chegada às 00:15 do dia seguinte');
 });

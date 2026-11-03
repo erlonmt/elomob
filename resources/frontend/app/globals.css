@@ -718,6 +718,10 @@ main {
   outline: 3px solid var(--teal);
   outline-offset: 2px;
 }
+.departure-note {
+  margin-bottom: 12px;
+  font-weight: 600;
+}
 .preference-note {
   color: var(--muted);
   font-size: 12px;
@@ -786,7 +790,12 @@ main {
   border-color: var(--teal);
 }
 .metrics {
-  margin: 16px 0;
+  margin: 16px 0 4px;
+}
+.result-card .arrival {
+  margin-bottom: 12px;
+  color: var(--muted);
+  font-size: 13px;
 }
 .metrics > strong {
   font:

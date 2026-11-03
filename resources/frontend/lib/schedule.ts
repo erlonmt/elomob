@@ -91,3 +91,30 @@ export function upcomingTrips(
   }
   return trips;
 }
+
+/** The calendar day of an instant in Recife, as "YYYY-MM-DD". */
+const recifeDay = (date: Date) =>
+  new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Recife' }).format(date);
+
+/** Days from the first instant's day to the second's, in Recife. */
+const daysBetween = (first: Date, second: Date) =>
+  Math.round((Date.parse(recifeDay(second)) - Date.parse(recifeDay(first))) / 86_400_000);
+
+/** When a trip leaves, relative to today in Recife: "Saída hoje às 14:30", "amanhã" or the date ("em 06/11"). */
+export function departureLabel(departure: Date, now: Date): string {
+  const days = daysBetween(now, departure);
+  const day =
+    days === 0
+      ? 'hoje'
+      : days === 1
+        ? 'amanhã'
+        : `em ${recifeDay(departure).slice(8, 10)}/${recifeDay(departure).slice(5, 7)}`;
+  return `Saída ${day} às ${recifeTime(departure)}`;
+}
+
+/** When a trip leaving at the given instant and taking the given minutes arrives, in Recife. */
+export function arrivalLabel(departure: Date, minutes: number): string {
+  const arrival = new Date(departure.getTime() + minutes * 60_000);
+  const nextDay = daysBetween(departure, arrival) > 0 ? ' do dia seguinte' : '';
+  return `Chegada às ${recifeTime(arrival)}${nextDay}`;
+}

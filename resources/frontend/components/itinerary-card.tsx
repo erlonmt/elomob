@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { distance, money } from '@/lib/format';
+import { arrivalLabel } from '@/lib/schedule';
 import type { Itinerary } from '@/lib/types';
 import { Icon } from './ui';
 
@@ -15,9 +16,12 @@ const criterionLabels: Record<string, { label: string; icon: string }> = {
 export function ItineraryCard({
   itinerary,
   criteria = [itinerary.criterion],
+  departure = null,
 }: {
   itinerary: Itinerary;
   criteria?: string[];
+  /** When the trip leaves, to tell when it arrives. */
+  departure?: Date | null;
 }) {
   const uniqueSteps = (itinerary.steps ?? []).filter(
     (step, index, steps) =>
@@ -48,6 +52,7 @@ export function ItineraryCard({
         </strong>
         <b>{money(itinerary.total_cost_cents)}</b>
       </div>
+      {departure && <p className="arrival">{arrivalLabel(departure, itinerary.total_minutes)}</p>}
       <strong className="route-description">
         {uniqueSteps
           .map(step => `${step.mode_name}${step.line_code ? ` ${step.line_code}` : ''}`)

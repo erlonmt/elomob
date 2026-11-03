@@ -160,6 +160,8 @@ CREATE TRIGGER connections_renew_network_version AFTER INSERT OR UPDATE OR DELET
 CREATE TRIGGER integrations_renew_network_version AFTER INSERT OR UPDATE OR DELETE OR TRUNCATE ON integrations FOR EACH STATEMENT EXECUTE FUNCTION elomob_renew_network_version();
 ALTER TABLE itineraries DROP CONSTRAINT itineraries_criterion;
 ALTER TABLE itineraries ADD CONSTRAINT itineraries_criterion CHECK (criterion IN ('fastest', 'cheapest', 'transfers', 'sustainable', 'public_transport'));
+update "users" set "email" = lower(email) where email <> lower(email);
+CREATE UNIQUE INDEX users_email_lower_unique ON users (lower(email));
 INSERT INTO migrations (migration,batch) VALUES ('0001_01_01_000000_create_users_table',1);
 INSERT INTO migrations (migration,batch) VALUES ('0001_01_01_000001_create_cache_table',1);
 INSERT INTO migrations (migration,batch) VALUES ('0001_01_01_000002_create_jobs_table',1);
@@ -174,4 +176,5 @@ INSERT INTO migrations (migration,batch) VALUES ('2026_11_02_004520_add_accessib
 INSERT INTO migrations (migration,batch) VALUES ('2026_11_02_132510_add_fare_integration_to_integrations_and_steps',1);
 INSERT INTO migrations (migration,batch) VALUES ('2026_11_02_141210_create_network_versions_table',1);
 INSERT INTO migrations (migration,batch) VALUES ('2026_11_03_020000_allow_the_public_transport_criterion_on_itineraries',1);
+INSERT INTO migrations (migration,batch) VALUES ('2026_11_03_183000_make_user_emails_case_insensitive',1);
 COMMIT;

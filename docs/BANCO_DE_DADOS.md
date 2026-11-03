@@ -63,6 +63,7 @@ Na carga, só a Estação Joana Bezerra integra a tarifa, entre ônibus e metrô
 ## Integridade
 
 - Código de modal, código de linha e nome de parada são únicos.
+- O e-mail de uma conta fica guardado em minúsculas e não se repete, mesmo com outra combinação de maiúsculas e minúsculas: um índice único em `lower(email)` garante isso no banco.
 - Uma conexão é única por origem, destino, modal e linha, então várias linhas podem atender o mesmo trecho. Conexões sem linha continuam únicas por trecho e modal, porque o PostgreSQL compara a linha vazia como igual (`NULLS NOT DISTINCT`).
 - Um nome de favorito pode existir para usuários diferentes, mas não se repetir para a mesma conta.
 - Não se repete um critério no mesmo conjunto de resultados nem uma posição no mesmo itinerário.

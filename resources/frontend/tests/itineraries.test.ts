@@ -38,3 +38,28 @@ test('routes that differ in their connections or totals stay separate', () => {
   ]);
   assert.equal(options.length, 3);
 });
+
+test('the route of the preferred criterion comes first, with that criterion first among its labels', () => {
+  const itineraries = [
+    itinerary(1, 'fastest', [7]),
+    itinerary(2, 'cheapest', [11, 13], 45),
+    itinerary(3, 'transfers', [7]),
+    itinerary(4, 'sustainable', [11, 13], 45),
+  ];
+
+  assert.deepEqual(
+    routeOptions(itineraries, 'sustainable').map(option => [option.itinerary.id, option.criteria]),
+    [
+      [2, ['sustainable', 'cheapest']],
+      [1, ['fastest', 'transfers']],
+    ],
+  );
+  assert.deepEqual(
+    routeOptions(itineraries, 'fastest').map(option => option.itinerary.id),
+    [1, 2],
+  );
+  assert.deepEqual(
+    routeOptions(itineraries.slice(0, 1), 'sustainable').map(option => option.criteria),
+    [['fastest']],
+  );
+});

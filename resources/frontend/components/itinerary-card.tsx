@@ -17,11 +17,14 @@ export function ItineraryCard({
   itinerary,
   criteria = [itinerary.criterion],
   departure = null,
+  preferred = false,
 }: {
   itinerary: Itinerary;
   criteria?: string[];
   /** When the trip leaves, to tell when it arrives. */
   departure?: Date | null;
+  /** Whether the account's preferred criterion chose this route. */
+  preferred?: boolean;
 }) {
   const uniqueSteps = (itinerary.steps ?? []).filter(
     (step, index, steps) =>
@@ -42,6 +45,7 @@ export function ItineraryCard({
               </span>
             );
           })}
+          {preferred && <span className="badge">Sua preferência</span>}
         </span>
         <small>Estimativa</small>
       </div>

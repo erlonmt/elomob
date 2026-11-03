@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { ItineraryCard } from '@/components/itinerary-card';
-import { useApiData } from '@/components/providers';
+import { useApiData, useApplication } from '@/components/providers';
 import { DemoNote, Empty, Loading, Notice, PageHeader } from '@/components/ui';
 import { needTitles } from '@/lib/accessibility';
 import { searchQuery } from '@/lib/geo';
@@ -11,8 +11,9 @@ import { departureLabel } from '@/lib/schedule';
 import type { Search } from '@/lib/types';
 
 export function ResultsScreen({ id }: { id: string }) {
+  const { user } = useApplication();
   const { data: search, loading, error, reload } = useApiData<Search>(`/buscas/${id}`);
-  const options = routeOptions(search?.itineraries ?? []);
+  const options = routeOptions(search?.itineraries ?? [], user?.preferred_route);
   const departureAt = search?.departure_at ?? search?.created_at;
   const departure = departureAt ? new Date(departureAt) : null;
   const needs = needTitles(search?.filters.accessibility_needs ?? []);
@@ -57,6 +58,7 @@ export function ResultsScreen({ id }: { id: string }) {
                       itinerary={option.itinerary}
                       criteria={option.criteria}
                       departure={departure}
+                      preferred={Boolean(user && option.criteria[0] === user.preferred_route)}
                     />
                   ))}
                 </div>

@@ -1,6 +1,6 @@
 import { strict as assert } from 'node:assert';
 import test from 'node:test';
-import { distance, money, stepFare } from '../lib/format.ts';
+import { distance, initials, money, stepFare } from '../lib/format.ts';
 
 test('fares in cents are shown as Brazilian reais', () => {
   assert.equal(money(380), 'R$ 3,80');
@@ -26,4 +26,11 @@ test('a step says what it charges, and a fare-integrated one only the difference
   );
   assert.equal(stepFare({ cost_cents: 0, fare_integrated: false }), null);
   assert.equal(stepFare({ cost_cents: 0 }), null);
+});
+
+test('an account is shown by the initials of its first and last names', () => {
+  assert.equal(initials('Erlon Moura'), 'EM');
+  assert.equal(initials('  ana   de souza lima '), 'AL');
+  assert.equal(initials('Érica'), 'É');
+  assert.equal(initials(''), '');
 });

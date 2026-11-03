@@ -8,6 +8,16 @@ export const money = (cents: number) =>
 export const distance = (meters: number) =>
   `${new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1 }).format(meters / 1000)} km`;
 
+/** The initials of the first and last names, in capitals, e.g. "EM" for "Erlon Moura". */
+export function initials(name: string) {
+  const words = name
+    .trim()
+    .split(/\s+/)
+    .filter(word => word !== '');
+  const chosen = words.length > 1 ? [words[0], words[words.length - 1]] : words;
+  return chosen.map(word => Array.from(word)[0].toLocaleUpperCase('pt-BR')).join('');
+}
+
 /**
  * Describe what a step charges: its fare, or for a fare-integrated change only the difference up to the
  * higher fare. Steps that charge nothing outside a fare integration (walking, staying on board) say nothing.

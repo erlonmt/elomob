@@ -1429,9 +1429,17 @@ main {
   margin-bottom: 24px;
 }
 .profile-avatar {
+  display: grid;
+  place-items: center;
+  width: 60px;
+  height: 60px;
   border: 3px solid var(--pale);
   border-radius: 50%;
-  object-fit: cover;
+  color: white;
+  background: var(--teal);
+  font:
+    700 22px Outfit,
+    sans-serif;
   flex-shrink: 0;
 }
 .profile-card .card-info strong {
@@ -2178,6 +2186,7 @@ main {
   .profile-avatar {
     width: 48px;
     height: 48px;
+    font-size: 18px;
   }
   .preference-modes {
     gap: 2px;

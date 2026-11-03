@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
@@ -9,6 +8,7 @@ import { useApplication } from '@/components/providers';
 import { DemoNote, Icon, Loading, LoginPrompt, Notice, PageHeader } from '@/components/ui';
 import { accessibilityNeeds } from '@/lib/accessibility';
 import { api, errorMessage } from '@/lib/api';
+import { initials } from '@/lib/format';
 import type { User } from '@/lib/types';
 
 export function ProfileScreen() {
@@ -80,13 +80,9 @@ function ProfileForm({ user, onDeleted }: { user: User; onDeleted: () => void })
     <div className="content profile-layout">
       <form className="profile-form" onSubmit={updateProfile}>
         <div className="profile-card">
-          <Image
-            src="/assets/figma/034fd.png"
-            width="60"
-            height="60"
-            className="profile-avatar"
-            alt="Avatar ilustrativo do protótipo"
-          />
+          <span className="profile-avatar" aria-hidden="true">
+            {initials(user.name)}
+          </span>
           <div className="card-info">
             <strong>{user.name}</strong>
             <small>{user.email}</small>

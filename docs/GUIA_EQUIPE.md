@@ -54,8 +54,8 @@ Antes de enviar, rode os testes. As imagens do Docker copiam o código em vez de
 
 ```bash
 docker compose up --build -d
-docker compose exec app composer test
-docker compose exec app composer test:pgsql
+docker compose run --rm --build test
+docker compose run --rm test composer test:pgsql
 cd resources/frontend
 npm ci
 npm run typecheck

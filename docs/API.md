@@ -82,7 +82,7 @@ O perfil tem `id`, `name`, `email`, `preferred_route`, `transport_modes` e `acce
 
 | Campo | Valores |
 | --- | --- |
-| `preferred_route` e `criterion` | `fastest` (mais rápido), `cheapest` (mais barato), `transfers` (menos integrações) e `sustainable` (mais sustentável, entre os trajetos que levam no máximo 25% a mais que o mais rápido) |
+| `preferred_route` e `criterion` | `fastest` (mais rápido), `cheapest` (mais barato), `transfers` (menos integrações) e `sustainable` (mais sustentável, entre os trajetos que levam no máximo 25% a mais que o mais rápido sem táxi nem aplicativo, ou que o mais rápido quando todos usam uma corrida) |
 | `transport_modes` e `modes` | `bus`, `metro`, `bike`, `taxi` e `app`, ao menos um e sem repetir |
 | `mode` nos filtros | Os cinco acima e `walk` |
 
@@ -153,10 +153,10 @@ O frontend mostra textos próprios, em português, para 401, 404, 419, 429 e 500
 | Rotas | Limite |
 | --- | --- |
 | `/sessao`, `/catalogo`, `/paradas` e `/linhas` | 60 por minuto para cada conta ou sessão |
-| `POST /buscas` | 30 por minuto para cada conta ou sessão |
-| `/entrar` e `/cadastrar` | 5 por minuto para cada e-mail em um mesmo IP e 100 por minuto por IP |
+| `POST /buscas` | 30 por minuto para cada conta ou sessão; sem conta, também 120 por minuto por IP |
+| `/entrar` e `/cadastrar` | 5 por minuto para cada e-mail, de qualquer IP, e 100 por minuto por IP |
 
-As demais rotas não têm limite próprio.
+As demais rotas não têm limite próprio. O IP é o do cliente, informado em `X-Forwarded-For` pelos proxies listados em `TRUSTED_PROXIES`: o Next.js e, no Docker, o nginx da entrada, que substitui o valor enviado pelo cliente. Sem conta, quem abre uma sessão nova a cada busca continua limitado pelo IP.
 
 ## Exemplo com curl
 

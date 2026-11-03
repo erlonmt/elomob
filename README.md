@@ -26,7 +26,7 @@ docker compose up --build
 
 Abra http://localhost:8000. A primeira execução constrói o frontend e a API, aplica as migrações e insere os dados de demonstração. Não é necessário instalar PHP, Composer ou Node no computador para esse caminho. As senhas de banco no Compose pertencem ao ambiente local de desenvolvimento.
 
-O Next.js recebe as requisições do navegador e encaminha `/api/v1` ao Laravel na mesma origem, preservando cookies de sessão e proteção CSRF. A API Laravel também responde diretamente em http://localhost:8002/api/v1; os endpoints estão em [docs/API.md](docs/API.md). PostgreSQL e Redis ficam acessíveis apenas na rede interna do Compose. O serviço `scheduler` roda o agendador do Laravel, que apaga todos os dias as buscas de visitantes com mais de uma semana.
+O nginx é a entrada: recebe as requisições do navegador na porta 8000, passa ao Next.js e informa o IP de cada cliente, que a API usa nos limites de requisições. O Next.js encaminha `/api/v1` ao Laravel na mesma origem, preservando cookies de sessão e proteção CSRF. O Laravel roda no PHP-FPM, em modo de produção, sem os pacotes de desenvolvimento, e o nginx também o expõe diretamente em http://localhost:8002/api/v1; os endpoints estão em [docs/API.md](docs/API.md). PostgreSQL e Redis ficam acessíveis apenas na rede interna do Compose. O serviço `scheduler` roda o agendador do Laravel, que apaga todos os dias as buscas de visitantes com mais de uma semana.
 
 Para interromper, pressione Ctrl+C. Os dados ficam preservados nos volumes do Docker. Para iniciar de novo, use `docker compose up`.
 
@@ -85,11 +85,11 @@ Os scripts SQL são uma alternativa às migrations em um banco vazio. Para o uso
 ## Testes
 
 ```bash
-docker compose exec app composer test
-docker compose exec app composer test:pgsql
+docker compose run --rm --build test
+docker compose run --rm test composer test:pgsql
 ```
 
-`composer test` roda a suíte em SQLite e cache em memória, mesmo quando o contêiner tem variáveis PostgreSQL e Redis. Os testes que dependem do PostgreSQL (restrições CHECK, PostGIS e `jsonb`) ficam ignorados nela.
+A imagem da API não leva os pacotes de desenvolvimento, então os testes rodam no serviço `test`, construído com eles a partir do mesmo `Dockerfile`. O primeiro comando roda `composer test`. `composer test` roda a suíte em SQLite e cache em memória. Os testes que dependem do PostgreSQL (restrições CHECK, PostGIS e `jsonb`) ficam ignorados nela.
 
 `composer test:pgsql` roda a mesma suíte no PostgreSQL com PostGIS, no banco descartável `elomob_test`, que é criado e migrado automaticamente se ainda não existir. A configuração fica em `phpunit.pgsql.xml`. Sem Docker, o comando usa o host, o usuário e a senha do `.env`, e esse usuário precisa poder criar bancos e habilitar o PostGIS. Nenhum dos dois comandos usa o banco da aplicação, e os testes não devem ser configurados para usá-lo.
 

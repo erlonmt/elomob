@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Enums\AccessibilityNeed;
 use App\Enums\RouteCriterion;
 use App\Enums\TransportModeCode;
+use App\Http\Requests\Concerns\NormalizesEmail;
 use App\Models\User;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -12,6 +13,8 @@ use Illuminate\Validation\Rule;
 
 class UpdateProfileRequest extends FormRequest
 {
+    use NormalizesEmail;
+
     /**
      * Determine if the user is authorized to make this request.
      */

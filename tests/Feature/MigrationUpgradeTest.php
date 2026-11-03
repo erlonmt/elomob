@@ -33,6 +33,7 @@ class MigrationUpgradeTest extends TestCase
             'database/migrations/2026_11_02_132510_add_fare_integration_to_integrations_and_steps.php',
             'database/migrations/2026_11_02_141210_create_network_versions_table.php',
             'database/migrations/2026_11_03_020000_allow_the_public_transport_criterion_on_itineraries.php',
+            'database/migrations/2026_11_03_183000_make_user_emails_case_insensitive.php',
         ];
         $firstLineOfEachStretch = DB::table('connections')->selectRaw('MIN(id)')->groupBy('from_stop_id', 'to_stop_id', 'transport_mode_id');
         DB::table('connections')->whereNotIn('id', $firstLineOfEachStretch)->delete();
@@ -132,7 +133,8 @@ class MigrationUpgradeTest extends TestCase
             'database/migrations/2026_11_02_132510_add_fare_integration_to_integrations_and_steps.php',
             'database/migrations/2026_11_02_141210_create_network_versions_table.php',
             'database/migrations/2026_11_03_020000_allow_the_public_transport_criterion_on_itineraries.php',
-        ], '--step' => 4, '--force' => true, '--no-interaction' => true])->assertExitCode(0);
+            'database/migrations/2026_11_03_183000_make_user_emails_case_insensitive.php',
+        ], '--step' => 5, '--force' => true, '--no-interaction' => true])->assertExitCode(0);
 
         $this->assertFalse(Schema::hasColumn('users', 'accessibility_needs'));
         foreach ($needsBySwitches as $case => [, $switches]) {
@@ -143,6 +145,31 @@ class MigrationUpgradeTest extends TestCase
             ['modes' => ['bus'], 'accessible_only' => false, 'avoid_stairs' => true, 'adapted_only' => false],
             json_decode(DB::table('trip_searches')->where('id', $search->id)->value('filters'), true),
         );
+
+        // DatabaseMigrations rolls the remaining migrations back after the test, which needs one line per stretch.
+        DB::table('connections')->whereNotIn('id', DB::table('connections')->selectRaw('MIN(id)')->groupBy('from_stop_id', 'to_stop_id', 'transport_mode_id'))->delete();
+    }
+
+    public function test_upgrading_lower_cases_the_stored_emails_and_refuses_accounts_differing_only_in_case(): void
+    {
+        $migration = ['--path' => ['database/migrations/2026_11_03_183000_make_user_emails_case_insensitive.php'], '--force' => true, '--no-interaction' => true];
+        $this->artisan('migrate:rollback', $migration + ['--step' => 1])->assertExitCode(0);
+        $user = User::factory()->create();
+        DB::table('users')->where('id', $user->id)->update(['email' => 'Ana.Souza@Elomob.TEST']);
+
+        $this->artisan('migrate', $migration)->assertExitCode(0);
+        $this->assertSame('ana.souza@elomob.test', DB::table('users')->where('id', $user->id)->value('email'));
+
+        $this->artisan('migrate:rollback', $migration + ['--step' => 1])->assertExitCode(0);
+        $twin = User::factory()->create();
+        DB::table('users')->where('id', $twin->id)->update(['email' => 'ANA.SOUZA@elomob.test']);
+        try {
+            $this->artisan('migrate', $migration)->run();
+            $this->fail('The migration accepted two accounts differing only in the case of their e-mail.');
+        } catch (\RuntimeException $exception) {
+            $this->assertStringContainsString('ana.souza@elomob.test', $exception->getMessage());
+        }
+        $this->assertSame('ANA.SOUZA@elomob.test', DB::table('users')->where('id', $twin->id)->value('email'));
 
         // DatabaseMigrations rolls the remaining migrations back after the test, which needs one line per stretch.
         DB::table('connections')->whereNotIn('id', DB::table('connections')->selectRaw('MIN(id)')->groupBy('from_stop_id', 'to_stop_id', 'transport_mode_id'))->delete();

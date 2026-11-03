@@ -72,8 +72,8 @@ Toda resposta traz `X-Request-Id`, o id da requisição, que também acompanha c
 
 | Endpoint | Campos |
 | --- | --- |
-| `POST /cadastrar` | `name` (até 100 caracteres), `email` (até 255 e sem outra conta igual), `password` (mínimo de 8) e `password_confirmation`, todos obrigatórios |
-| `POST /entrar` | `email` e `password`. Com dados errados, responde 422 com "E-mail ou senha incorretos." no campo `email` |
+| `POST /cadastrar` | `name` (até 100 caracteres), `email` (até 255 e sem outra conta igual), `password` (mínimo de 8) e `password_confirmation`, todos obrigatórios. O e-mail é guardado em minúsculas, e uma conta com o mesmo e-mail em outra combinação de maiúsculas e minúsculas conta como igual |
+| `POST /entrar` | `email` e `password`, com o e-mail em qualquer combinação de maiúsculas e minúsculas. Com dados errados, responde 422 com "E-mail ou senha incorretos." no campo `email` |
 | `PUT /perfil/senha` | `current_password`, `password` (mínimo de 8) e `password_confirmation`, todos obrigatórios. Com a senha atual errada, responde 422 com "A senha atual está incorreta." |
 | `DELETE /perfil` | `password`, obrigatório, com a senha da conta. Errada, responde 422 com "A senha está incorreta." |
 | `PUT /perfil` | `name`, `email`, `preferred_route` e `transport_modes`, obrigatórios; `accessibility_needs`, lista opcional e sem repetição dos tipos de necessidade (`wheelchair`, `reduced_mobility`, `visual` e `hearing`), que fica vazia quando ausente |

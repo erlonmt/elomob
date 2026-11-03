@@ -7,10 +7,12 @@ use App\Enums\RouteCriterion;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
 
 #[Fillable(['name', 'email', 'password', 'preferred_route', 'transport_modes', 'accessibility_needs'])]
 #[Hidden(['password', 'remember_token'])]
@@ -33,6 +35,17 @@ class User extends Authenticatable
             'transport_modes' => 'array',
             'accessibility_needs' => 'array',
         ];
+    }
+
+    /**
+     * Keep the e-mail in lower case, so an account is found and kept unique whatever case its e-mail is typed in
+     * (the database also refuses two e-mails differing only in case).
+     *
+     * @return Attribute<string, string>
+     */
+    protected function email(): Attribute
+    {
+        return Attribute::make(set: fn (string $value): string => Str::lower($value));
     }
 
     /**

@@ -47,10 +47,13 @@ services:
     depends_on:
       app:
         condition: service_healthy
-  app:
+  # Migrates the database and loads the demonstration data once per start, before the API, so API containers
+  # never run migrations at the same time.
+  setup:
     build:
       context: .
       target: production
+    command: ["setup"]
     environment: *laravel-environment
     volumes:
       - app_storage:/app/storage
@@ -59,8 +62,20 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+  app:
+    build:
+      context: .
+      target: production
+    environment: *laravel-environment
+    volumes:
+      - app_storage:/app/storage
+    depends_on:
+      setup:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
     healthcheck:
-      # PHP-FPM opens its port after the migrations and the demonstration data.
+      # PHP-FPM opens its port once the application is prepared.
       test: ["CMD", "php", "-r", "exit(@fsockopen('127.0.0.1', 9000) ? 0 : 1);"]
       interval: 5s
       timeout: 5s

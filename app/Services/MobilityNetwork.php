@@ -7,6 +7,7 @@ use App\Models\Integration;
 use App\Models\Line;
 use App\Models\Stop;
 use App\Models\TransportMode;
+use App\Services\Routing\LineRoutes;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;

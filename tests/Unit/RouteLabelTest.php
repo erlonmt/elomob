@@ -2,7 +2,7 @@
 
 namespace Tests\Unit;
 
-use App\Services\RouteLabel;
+use App\Services\Routing\RouteLabel;
 use PHPUnit\Framework\TestCase;
 
 class RouteLabelTest extends TestCase

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Routing;
 
 use App\Enums\TransportModeCode;
 

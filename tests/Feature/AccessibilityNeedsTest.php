@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Services\RoutePlanner;
+use App\Services\Routing\RoutePlanner;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;

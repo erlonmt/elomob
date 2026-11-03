@@ -5,7 +5,7 @@ namespace Tests\Feature;
 use App\Models\Connection;
 use App\Models\Line;
 use App\Models\Stop;
-use App\Services\RoutePlanner;
+use App\Services\Routing\RoutePlanner;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;

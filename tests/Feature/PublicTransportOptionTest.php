@@ -3,7 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Connection;
-use App\Services\RoutePlanner;
+use App\Services\Routing\RoutePlanner;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;

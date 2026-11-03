@@ -5,9 +5,10 @@ namespace App\Services;
 use App\Enums\TransportModeCode;
 use App\Models\TripSearch;
 use App\Models\User;
+use App\Services\Routing\RoutePlanner;
 use Illuminate\Support\Facades\DB;
 
-class TripRepository
+class TripSearchService
 {
     public function __construct(private RoutePlanner $planner) {}
 

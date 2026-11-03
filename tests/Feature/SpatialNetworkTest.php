@@ -3,7 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Itinerary;
-use App\Services\RoutePlanner;
+use App\Services\Routing\RoutePlanner;
 use App\Services\SpatialNetwork;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;

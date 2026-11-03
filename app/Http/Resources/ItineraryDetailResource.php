@@ -3,7 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Models\Itinerary;
-use App\Services\RoutePlanner;
+use App\Services\Routing\RoutePlanner;
 use Illuminate\Http\Request;
 
 /**

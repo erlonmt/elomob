@@ -2,7 +2,7 @@
 
 namespace Tests\Unit;
 
-use App\Services\LineRoutes;
+use App\Services\Routing\LineRoutes;
 use PHPUnit\Framework\TestCase;
 
 class LineRoutesTest extends TestCase

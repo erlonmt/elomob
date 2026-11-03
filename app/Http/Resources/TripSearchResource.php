@@ -3,7 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Models\TripSearch;
-use App\Services\RoutePlanner;
+use App\Services\Routing\RoutePlanner;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 

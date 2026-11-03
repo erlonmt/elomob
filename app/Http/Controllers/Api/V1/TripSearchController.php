@@ -7,7 +7,7 @@ use App\Http\Requests\SearchRouteRequest;
 use App\Http\Resources\TripSearchResource;
 use App\Models\ItineraryStep;
 use App\Models\TripSearch;
-use App\Services\TripRepository;
+use App\Services\TripSearchService;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -40,7 +40,7 @@ class TripSearchController extends Controller
     /**
      * Plan and save a search, tied to the signed-in account or, for a guest, to the browser session.
      */
-    public function store(SearchRouteRequest $request, TripRepository $trips): JsonResponse
+    public function store(SearchRouteRequest $request, TripSearchService $trips): JsonResponse
     {
         $sessionKey = $request->session()->remember(TripSearch::SESSION_KEY, fn (): string => (string) Str::uuid());
         $search = $trips->create($request->user(), $sessionKey, $request->validated());

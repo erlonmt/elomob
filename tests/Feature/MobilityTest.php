@@ -5,7 +5,7 @@ namespace Tests\Feature;
 use App\Enums\TransportModeCode;
 use App\Models\Connection;
 use App\Models\Stop;
-use App\Services\RoutePlanner;
+use App\Services\Routing\RoutePlanner;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;

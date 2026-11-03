@@ -1,12 +1,13 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Routing;
 
 use App\Enums\AccessibilityNeed;
 use App\Enums\RouteCriterion;
 use App\Enums\TransportModeCode;
 use App\Models\Connection;
 use App\Models\Stop;
+use App\Services\MobilityNetwork;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;

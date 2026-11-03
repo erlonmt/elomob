@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Routing;
 
 /**
  * The order of the stops along each line, worked out from its stretches. A line whose stretches form a single path

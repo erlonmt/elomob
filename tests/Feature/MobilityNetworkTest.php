@@ -5,7 +5,7 @@ namespace Tests\Feature;
 use App\Models\Connection;
 use App\Models\Stop;
 use App\Services\MobilityNetwork;
-use App\Services\RoutePlanner;
+use App\Services\Routing\RoutePlanner;
 use Closure;
 use Illuminate\Database\RecordsNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;

@@ -77,7 +77,7 @@ class MigrationUpgradeTest extends TestCase
         $this->assertTrue(Schema::hasIndex('itinerary_steps', ['connection_id']));
         $this->assertSame(0, DB::table('connections')->whereNotNull('line_id')->whereNotNull('boarding_fare_cents')->count());
         $this->assertSame(0, DB::table('connections')->whereNull('line_id')->whereNull('boarding_fare_cents')->count());
-        $search = DB::table('trip_searches')->find($searchId);
+        $search = DB::table('trip_searches')->where('id', $searchId)->first();
         $this->assertSame('2026-10-30 17:30:00', $search->departure_at);
         $this->assertSame(['modes' => ['taxi'], 'accessibility_needs' => ['wheelchair']], json_decode($search->filters, true));
         $this->assertSame(['wheelchair', 'reduced_mobility'], json_decode(DB::table('users')->where('id', $user->id)->value('accessibility_needs'), true));
@@ -134,7 +134,7 @@ class MigrationUpgradeTest extends TestCase
 
         $this->assertFalse(Schema::hasColumn('users', 'accessibility_needs'));
         foreach ($needsBySwitches as $case => [, $switches]) {
-            $user = DB::table('users')->find($users[$case]);
+            $user = DB::table('users')->where('id', $users[$case])->first();
             $this->assertSame($switches, [(bool) $user->accessible_only, (bool) $user->avoid_stairs, (bool) $user->adapted_only], $case);
         }
         $this->assertEquals(

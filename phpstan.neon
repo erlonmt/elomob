@@ -1,0 +1,17 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    paths:
+        - app
+        - bootstrap/app.php
+        - config
+        - database
+        - routes
+        - tests
+    level: 6
+    # The models declare casts() as array<string, string>, so Larastan reads the casts from the method body.
+    parseModelCastsMethod: true
+    # Methods such as RoutePlanner::plan() read the database, so a call is not assumed to return what it returned
+    # before an assertion.
+    rememberPossiblyImpureFunctionValues: false

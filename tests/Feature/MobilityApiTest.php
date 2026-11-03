@@ -123,7 +123,7 @@ class MobilityApiTest extends TestCase
 
     public function test_catalog_integrations_say_whether_they_integrate_the_fare(): void
     {
-        $integrations = collect($this->getJson('/api/v1/catalogo')->assertOk()->json('data.integrations'))
+        $integrations = $this->getJson('/api/v1/catalogo')->assertOk()->collect('data.integrations')
             ->mapWithKeys(fn (array $integration): array => [$integration['name'].': '.$integration['from_mode'].' → '.$integration['to_mode'] => $integration['fare_integrated']]);
 
         $this->assertSame([
@@ -138,7 +138,7 @@ class MobilityApiTest extends TestCase
 
     public function test_catalog_stops_expose_tactile_paving_and_visual_signs(): void
     {
-        $stops = collect($this->getJson('/api/v1/catalogo')->assertOk()->json('data.stops'))->keyBy('name');
+        $stops = $this->getJson('/api/v1/catalogo')->assertOk()->collect('data.stops')->keyBy('name');
 
         $this->assertSame(['accessible' => true, 'tactile_paving' => false, 'visual_signs' => true], Arr::only($stops['Cais de Santa Rita'], ['accessible', 'tactile_paving', 'visual_signs']));
         $this->assertSame(['accessible' => false, 'tactile_paving' => true, 'visual_signs' => true], Arr::only($stops['Estação Recife'], ['accessible', 'tactile_paving', 'visual_signs']));
@@ -147,8 +147,8 @@ class MobilityApiTest extends TestCase
 
     public function test_steps_say_which_needs_they_meet(): void
     {
-        $search = $this->postJson('/api/v1/buscas', array_replace($this->searchData(), ['modes' => ['bus', 'metro']]))->assertCreated()->json('data');
-        $fastest = collect($search['itineraries'])->firstWhere('criterion', 'fastest');
+        $fastest = $this->postJson('/api/v1/buscas', array_replace($this->searchData(), ['modes' => ['bus', 'metro']]))->assertCreated()
+            ->collect('data.itineraries')->firstWhere('criterion', 'fastest');
         $steps = $this->getJson('/api/v1/trajetos/'.$fastest['id'])->assertOk()->json('data.steps');
 
         $this->assertSame(['042', 'CENTRO', null], array_column($steps, 'line_code'));
@@ -166,10 +166,9 @@ class MobilityApiTest extends TestCase
         DB::table('stops')->whereIn('name', ['Derby', 'Boa Vista'])->update(['tactile_paving' => false]);
         DB::table('stops')->where('name', 'Recife Antigo')->update(['accessible' => false]);
 
-        $search = $this->postJson('/api/v1/buscas', [
+        $steps = $this->postJson('/api/v1/buscas', [
             'origin_id' => $this->stop('Cordeiro'), 'destination_id' => $this->stop('Recife Antigo'), 'modes' => ['bus'], 'departure_at' => '2026-10-30T14:31:00-03:00',
-        ])->assertCreated()->json('data');
-        $steps = collect($search['itineraries'])->firstWhere('criterion', 'fastest')['steps'];
+        ])->assertCreated()->collect('data.itineraries')->firstWhere('criterion', 'fastest')['steps'];
 
         $this->assertSame(['Derby', 'Boa Vista', 'Recife Antigo'], array_column($steps, 'destination'));
         $this->assertSame(['081', '081', '081'], array_column($steps, 'line_code'));
@@ -230,7 +229,7 @@ class MobilityApiTest extends TestCase
     public function test_search_records_and_returns_the_integration_time_of_each_step(): void
     {
         $data = array_replace($this->searchData(), ['modes' => ['bus', 'metro'], 'departure_at' => '2026-10-30T14:30:00-03:00']);
-        $itinerary = collect($this->postJson('/api/v1/buscas', $data)->assertCreated()->json('data.itineraries'))->firstWhere('criterion', 'fastest');
+        $itinerary = $this->postJson('/api/v1/buscas', $data)->assertCreated()->collect('data.itineraries')->firstWhere('criterion', 'fastest');
 
         $this->assertSame([0, 3, 0], array_column($itinerary['steps'], 'transfer_minutes'));
         $this->assertDatabaseHas('itinerary_steps', ['itinerary_id' => $itinerary['id'], 'sequence' => 2, 'transfer_minutes' => 3, 'wait_minutes' => 3]);
@@ -242,7 +241,7 @@ class MobilityApiTest extends TestCase
     public function test_search_records_and_returns_the_fare_integration_of_each_step(): void
     {
         $data = array_replace($this->searchData(), ['modes' => ['bus', 'metro']]);
-        $itinerary = collect($this->postJson('/api/v1/buscas', $data)->assertCreated()->json('data.itineraries'))->firstWhere('criterion', 'fastest');
+        $itinerary = $this->postJson('/api/v1/buscas', $data)->assertCreated()->collect('data.itineraries')->firstWhere('criterion', 'fastest');
 
         $this->assertSame([380, 0, 0], array_column($itinerary['steps'], 'cost_cents'));
         $this->assertSame([false, true, false], array_column($itinerary['steps'], 'fare_integrated'));

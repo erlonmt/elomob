@@ -133,7 +133,7 @@ class Connection extends Model
     #[Scope]
     protected function withPathGeoJson(Builder $query): void
     {
-        if ($query->getConnection()->getDriverName() !== 'pgsql') {
+        if ($query->getModel()->getConnection()->getDriverName() !== 'pgsql') {
             return;
         }
 

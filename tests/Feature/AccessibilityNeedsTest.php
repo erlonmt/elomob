@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Services\RoutePlanner;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
@@ -211,6 +212,7 @@ class AccessibilityNeedsTest extends TestCase
                 ->whereIn('from_stop_id', [$this->stop($change[1]), $this->stop($change[2])])
                 ->whereIn('to_stop_id', [$this->stop($change[1]), $this->stop($change[2])])
                 ->update($change[3]),
+            default => throw new InvalidArgumentException('Unknown change to the network.'),
         };
     }
 

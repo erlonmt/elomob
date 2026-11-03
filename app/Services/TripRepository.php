@@ -21,7 +21,7 @@ class TripRepository
      */
     public function create(?User $user, string $sessionKey, array $input): TripSearch
     {
-        $options = ['modes' => $input['modes'], 'accessibility_needs' => $user?->accessibility_needs ?? []];
+        $options = ['modes' => $input['modes'], 'accessibility_needs' => $user->accessibility_needs ?? []];
         $departureAt = isset($input['departure_at']) ? $this->planner->departure($input['departure_at']) : null;
 
         $plans = $this->planner->plan($input['origin_id'], $input['destination_id'], $options + ['departure_at' => $departureAt?->toIso8601String()]);

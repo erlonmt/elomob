@@ -25,7 +25,7 @@ class DatabaseIntegrityTest extends TestCase
      * Changes each CHECK constraint must reject, applied to the first row of the table, with the constraint expected.
      * The first seeded connection is on line 042.
      *
-     * @var array<string, array{string, array<string, int|string>, string}>
+     * @var array<string, array{string, array<string, int|string|null>, string}>
      */
     private const array VALUES_OUTSIDE_THE_DOMAIN = [
         'line without frequency' => ['lines', ['frequency_minutes' => 0], 'lines_valid'],

@@ -59,6 +59,9 @@ jobs:
       - name: Formatação (Pint)
         run: vendor/bin/pint --test
 
+      - name: Análise estática (Larastan)
+        run: composer analyse
+
       - name: Testes em SQLite
         run: composer test
 

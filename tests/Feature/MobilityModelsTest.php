@@ -97,7 +97,6 @@ class MobilityModelsTest extends TestCase
     {
         $search = TripSearch::factory()->create()->fresh();
 
-        $this->assertIsArray($search->filters);
         $this->assertSame(['modes', 'accessibility_needs'], array_keys($search->filters));
         $this->assertSame([], $search->filters['accessibility_needs']);
         $this->assertSame(['bus', 'metro'], $search->filters['modes']);

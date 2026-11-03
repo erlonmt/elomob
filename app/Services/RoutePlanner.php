@@ -106,9 +106,9 @@ class RoutePlanner
      */
     private function usableStops(EloquentCollection $stops, array $needs): array
     {
-        return $stops
-            ->filter(fn (Stop $stop): bool => array_all($needs, fn (AccessibilityNeed $need): bool => $need->isMetAt($stop)))
-            ->map(fn (): bool => true)
-            ->all();
+        return array_fill_keys(
+            $stops->filter(fn (Stop $stop): bool => array_all($needs, fn (AccessibilityNeed $need): bool => $need->isMetAt($stop)))->keys()->all(),
+            true,
+        );
     }
 }

@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Testing\TestResponse;
+use Symfony\Component\HttpFoundation\Response;
 use Tests\TestCase;
 
 /**
@@ -53,6 +54,8 @@ class RateLimitingTest extends TestCase
 
     /**
      * Try to sign in with a wrong password, from the given client address.
+     *
+     * @return TestResponse<Response>
      */
     private function signIn(string $email, string $address): TestResponse
     {
@@ -61,6 +64,8 @@ class RateLimitingTest extends TestCase
 
     /**
      * Send a search without its fields, which the API refuses after counting it, from the given client address.
+     *
+     * @return TestResponse<Response>
      */
     private function search(string $address): TestResponse
     {

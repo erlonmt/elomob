@@ -25,6 +25,8 @@ export type Line = {
   ends_at: string;
   frequency_minutes: number;
   fare_cents: number;
+  /** The two ways of the line, each with its stops in order and the minutes from the first one. */
+  directions: { to: string; stops: { id: number; name: string; minutes: number }[] }[];
 };
 export type Integration = {
   id: number;

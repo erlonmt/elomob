@@ -1,6 +1,6 @@
 import { strict as assert } from 'node:assert';
 import test from 'node:test';
-import { recifeTime, serviceHoursNotice } from '../lib/schedule.ts';
+import { clockTime, upcomingTrips, recifeTime, serviceHoursNotice } from '../lib/schedule.ts';
 
 const lines = [
   { mode: 'bus', starts_at: '05:00:00', ends_at: '23:00:00' },
@@ -45,4 +45,42 @@ test('no notice without a scheduled mode, and lines crossing midnight still run'
 
 test('the current time is read in Recife', () => {
   assert.equal(recifeTime(new Date('2026-11-03T02:30:00Z')), '23:30');
+});
+
+const line081 = { starts_at: '05:30:00', ends_at: '22:30:00', frequency_minutes: 15 };
+const at = (time: string) => new Date(`2026-11-03T${time}:00-03:00`);
+
+test('the timetable follows the next vehicles still on the way, from when they leave the first stop', () => {
+  const times = (trips: { minute: number; tomorrow: boolean }[]) =>
+    trips.map(trip => [clockTime(trip.minute), trip.tomorrow]);
+
+  assert.deepEqual(times(upcomingTrips(line081, 50, at('14:30'))), [
+    ['13:45', false],
+    ['14:00', false],
+    ['14:15', false],
+  ]);
+  assert.deepEqual(times(upcomingTrips(line081, 50, at('22:40'))), [
+    ['22:00', false],
+    ['22:15', false],
+    ['22:30', false],
+  ]);
+  assert.deepEqual(times(upcomingTrips(line081, 50, at('23:30'))), [
+    ['05:30', true],
+    ['05:45', true],
+    ['06:00', true],
+  ]);
+  assert.equal(clockTime(32 + 13 * 60 + 45), '14:17');
+  assert.equal(clockTime(1440 + 330), '05:30');
+});
+
+test('a line running past midnight keeps the previous night trips until they end', () => {
+  const night = { starts_at: '22:00:00', ends_at: '02:00:00', frequency_minutes: 30 };
+  assert.deepEqual(
+    upcomingTrips(night, 10, at('01:15'), 2).map(trip => clockTime(trip.minute)),
+    ['01:30', '02:00'],
+  );
+  assert.deepEqual(
+    upcomingTrips(night, 10, at('03:00'), 1).map(trip => [clockTime(trip.minute), trip.tomorrow]),
+    [['22:00', false]],
+  );
 });

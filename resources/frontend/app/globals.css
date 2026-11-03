@@ -1212,6 +1212,58 @@ main {
   display: inline-block;
   font-weight: 600;
 }
+.line-timetable {
+  width: 100%;
+  max-width: 32rem;
+  margin-top: 12px;
+  border-collapse: collapse;
+  color: var(--ink);
+}
+.line-timetable caption {
+  margin-bottom: 4px;
+  text-align: left;
+  font:
+    700 14px Outfit,
+    sans-serif;
+}
+.line-timetable th,
+.line-timetable td {
+  padding: 6px 0;
+  border-bottom: 1px solid var(--line);
+  text-align: right;
+  font-weight: 400;
+}
+.line-timetable tr:last-child > * {
+  border-bottom: 0;
+}
+.line-timetable thead th {
+  padding-top: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+.line-timetable th:first-child {
+  padding-right: 12px;
+  text-align: left;
+}
+.line-timetable td {
+  width: 3.6em;
+  font:
+    700 14px Outfit,
+    sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+.line-timetable td.passed {
+  color: var(--muted);
+  font-weight: 400;
+}
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
 .network-aside {
   margin-top: 24px;
 }

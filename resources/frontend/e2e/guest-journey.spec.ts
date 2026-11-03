@@ -49,3 +49,28 @@ test('a guest is invited to sign in to keep places and history', async ({ page }
   await page.getByRole('link', { name: 'Entrar ou criar conta' }).click();
   await expect(page).toHaveURL(/\/entrar/);
 });
+
+test('the schedules show each way of a line as a timetable of its next vehicles', async ({
+  page,
+}) => {
+  await page.goto('/horarios');
+  await page.getByText('081 Cordeiro → Recife Antigo').click();
+
+  const toRecifeAntigo = page.getByRole('table', { name: 'Sentido Recife Antigo' });
+  await expect(toRecifeAntigo.getByRole('rowheader')).toHaveText([
+    'Várzea',
+    'Terminal Integrado CDU',
+    'Cordeiro',
+    'Derby',
+    'Boa Vista',
+    'Recife Antigo',
+  ]);
+  await expect(toRecifeAntigo.getByRole('row').nth(1).getByRole('cell')).toHaveText([
+    /^(\d{2}:\d{2}|–já passou)$/,
+    /^(\d{2}:\d{2}|–já passou)$/,
+    /^(\d{2}:\d{2}|–já passou)$/,
+  ]);
+  await expect(page.getByRole('table', { name: 'Sentido Várzea' })).toBeVisible();
+  await expect(page.getByText('BRT Caxangá (TI CDU → Boa Vista)')).toBeVisible();
+  await expect(page.getByText('BRT BRT')).toHaveCount(0);
+});

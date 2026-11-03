@@ -2,10 +2,85 @@
 
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useApplication } from '@/components/providers';
 import { DemoNote, Empty, Icon, Loading, Notice, PageHeader } from '@/components/ui';
 import { money } from '@/lib/format';
+import { clockTime, minuteOfDay, recifeTime, upcomingTrips } from '@/lib/schedule';
+import type { Line } from '@/lib/types';
+
+/** The line's code and name, without repeating the code when the name starts with it ("BRT Caxangá"). */
+const lineTitle = (line: Line) =>
+  line.name.startsWith(line.code) ? line.name : `${line.code} ${line.name}`;
+
+/** The current instant, renewed every minute. */
+function useNow(): Date {
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(timer);
+  }, []);
+  return now;
+}
+
+/**
+ * Each way of a line as a timetable: its stops, and when each of the next vehicles still on the way passes them, one
+ * column per vehicle; a dash where the vehicle has already passed.
+ */
+function LineTimetables({ line, now }: { line: Line; now: Date }) {
+  const nowMinute = minuteOfDay(recifeTime(now));
+  const vehicle = line.mode === 'metro' ? 'trem' : 'ônibus';
+  return (
+    <>
+      <p>
+        Próximos {line.mode === 'metro' ? 'trens' : 'ônibus'} em cada sentido. Um traço indica que o{' '}
+        {vehicle} já passou pela parada.
+      </p>
+      {line.directions.map(direction => {
+        const trips = upcomingTrips(line, direction.stops.at(-1)?.minutes ?? 0, now);
+        return (
+          <table className="line-timetable" key={direction.to}>
+            <caption>Sentido {direction.to}</caption>
+            <thead>
+              <tr>
+                <th scope="col">Parada</th>
+                {trips.map(trip => (
+                  <th scope="col" key={trip.minute}>
+                    {trip.tomorrow && 'Amanhã'}
+                    <span className="visually-hidden">
+                      {' '}
+                      {vehicle} que sai de {direction.stops[0].name} às {clockTime(trip.minute)}
+                    </span>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {direction.stops.map(stop => (
+                <tr key={stop.id}>
+                  <th scope="row">{stop.name}</th>
+                  {trips.map(trip => {
+                    const minute = trip.minute + stop.minutes;
+                    return minute < nowMinute ? (
+                      <td key={trip.minute} className="passed">
+                        <span aria-hidden="true">–</span>
+                        <span className="visually-hidden">já passou</span>
+                      </td>
+                    ) : (
+                      <td key={trip.minute}>
+                        <time>{clockTime(minute)}</time>
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        );
+      })}
+    </>
+  );
+}
 
 export function SchedulesScreen() {
   const { catalog, loading, catalogError } = useApplication();
@@ -20,6 +95,7 @@ export function SchedulesScreen() {
         .includes(query.toLocaleLowerCase('pt-BR')),
   );
   const bikes = catalog.stops.filter(stop => stop.mode === 'bike');
+  const now = useNow();
 
   return (
     <>
@@ -66,9 +142,7 @@ export function SchedulesScreen() {
                       <Icon name={`${line.mode}-card`} />
                     </span>
                     <span className="card-info">
-                      <strong>
-                        {line.code} {line.name}
-                      </strong>
+                      <strong>{lineTitle(line)}</strong>
                       <small>
                         {line.starts_at.slice(0, 5)}–{line.ends_at.slice(0, 5)} · a cada{' '}
                         {line.frequency_minutes} min
@@ -80,10 +154,14 @@ export function SchedulesScreen() {
                     <p>
                       <strong>Tarifa estimada:</strong> {money(line.fare_cents)}
                     </p>
-                    <p>
-                      A busca considera o horário de operação e a frequência cadastrada para estimar
-                      a espera.
-                    </p>
+                    {line.directions.length ? (
+                      <LineTimetables line={line} now={now} />
+                    ) : (
+                      <p>
+                        A busca considera o horário de operação e a frequência cadastrada para
+                        estimar a espera.
+                      </p>
+                    )}
                     <Link href="/buscar">Planejar um trajeto com esta rede →</Link>
                   </div>
                 </details>

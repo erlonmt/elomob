@@ -4,6 +4,7 @@ import {
   arrivalLabel,
   departureLabel,
   clockTime,
+  departureWindow,
   upcomingTrips,
   recifeTime,
   serviceHoursNotice,
@@ -109,4 +110,16 @@ test('the departure of a search is told relative to today, in Recife', () => {
 test('the arrival says the clock time, and when it is on the day after the departure', () => {
   assert.equal(arrivalLabel(at('14:30'), 47), 'Chegada às 15:17');
   assert.equal(arrivalLabel(at('23:40'), 35), 'Chegada às 00:15 do dia seguinte');
+});
+
+test('a departure can be chosen from the start of today up to the end of the 90th day ahead, in Recife', () => {
+  assert.deepEqual(departureWindow(new Date('2026-10-30T17:30:00Z')), {
+    min: '2026-10-30T00:00',
+    max: '2027-01-28T23:59',
+  });
+  // 22:00 in Recife is already the next day in UTC.
+  assert.deepEqual(departureWindow(new Date('2026-10-31T01:00:00Z')), {
+    min: '2026-10-30T00:00',
+    max: '2027-01-28T23:59',
+  });
 });

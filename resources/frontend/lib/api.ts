@@ -37,9 +37,18 @@ export async function loadSession(): Promise<Session> {
   return sessionRequest;
 }
 
-export async function api<T>(path: string, options: RequestInit = {}): Promise<Envelope<T>> {
+/**
+ * Call the API. A change refused with 419 (the session, and so its CSRF token, expired while the page stayed open)
+ * gets a new token and is sent once more, so it goes on as a guest instead of asking to reload the page.
+ */
+export async function api<T>(
+  path: string,
+  options: RequestInit = {},
+  renewedToken = false,
+): Promise<Envelope<T>> {
   const method = options.method ?? 'GET';
-  if (!['GET', 'HEAD'].includes(method) && !csrfToken) {
+  const changes = !['GET', 'HEAD'].includes(method);
+  if (changes && !csrfToken) {
     await loadSession();
   }
   const headers = new Headers(options.headers);
@@ -47,7 +56,7 @@ export async function api<T>(path: string, options: RequestInit = {}): Promise<E
   if (options.body) {
     headers.set('Content-Type', 'application/json');
   }
-  if (csrfToken && !['GET', 'HEAD'].includes(method)) {
+  if (csrfToken && changes) {
     headers.set('X-CSRF-TOKEN', csrfToken);
   }
 
@@ -57,6 +66,11 @@ export async function api<T>(path: string, options: RequestInit = {}): Promise<E
     credentials: 'same-origin',
     cache: 'no-store',
   });
+  if (response.status === 419 && changes && !renewedToken) {
+    csrfToken = '';
+    await loadSession();
+    return api<T>(path, options, true);
+  }
   const result = await response.json().catch(() => ({}));
   if (!response.ok) {
     throw new ApiError(

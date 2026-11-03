@@ -138,7 +138,7 @@ Cada trajeto tem `id`, `criterion`, `total_minutes`, `total_cost_cents`, `total_
 | 422 | Dados inválidos | `message` com o primeiro erro e `errors` com as mensagens de cada campo, em português |
 | 429 | Limite de requisições ultrapassado | `{"message": "Too Many Attempts."}` e o cabeçalho `Retry-After` |
 
-O frontend mostra textos próprios, em português, para 401, 404, 419, 429 e 500. Exemplo de 422:
+O frontend mostra textos próprios, em português, para 401, 404, 419, 429 e 500. Diante de um 419, ele antes pede um token novo em `GET /sessao` e repete a requisição uma vez; o texto só aparece se ela for recusada de novo. Exemplo de 422:
 
 ```json
 {

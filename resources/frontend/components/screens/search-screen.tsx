@@ -9,7 +9,7 @@ import { StopSelect } from '@/components/stop-select';
 import { DemoNote, Icon, Loading, Notice, PageHeader } from '@/components/ui';
 import { needTitles } from '@/lib/accessibility';
 import { api, errorMessage } from '@/lib/api';
-import { recifeTime, serviceHoursNotice } from '@/lib/schedule';
+import { departureWindow, recifeTime, serviceHoursNotice } from '@/lib/schedule';
 import type { Search } from '@/lib/types';
 
 export function SearchScreen() {
@@ -130,6 +130,7 @@ export function SearchScreen() {
                 type="datetime-local"
                 value={departure}
                 onChange={event => setDeparture(event.target.value)}
+                {...departureWindow(new Date())}
                 required
               />
             </label>

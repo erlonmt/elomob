@@ -96,6 +96,21 @@ export function upcomingTrips(
 const recifeDay = (date: Date) =>
   new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Recife' }).format(date);
 
+/** How many days ahead, after today, a trip may be planned (as the API accepts). */
+const MAX_DAYS_AHEAD = 90;
+
+/**
+ * The earliest and latest departure the API accepts, as a datetime-local field takes them: from the start of today
+ * to the end of the last day ahead, in Recife.
+ */
+export function departureWindow(now: Date): { min: string; max: string } {
+  const today = recifeDay(now);
+  const lastDay = new Date(Date.parse(today) + MAX_DAYS_AHEAD * 86_400_000)
+    .toISOString()
+    .slice(0, 10);
+  return { min: `${today}T00:00`, max: `${lastDay}T23:59` };
+}
+
 /** Days from the first instant's day to the second's, in Recife. */
 const daysBetween = (first: Date, second: Date) =>
   Math.round((Date.parse(recifeDay(second)) - Date.parse(recifeDay(first))) / 86_400_000);

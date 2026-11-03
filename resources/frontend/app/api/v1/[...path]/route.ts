@@ -18,7 +18,7 @@ async function proxy(
   const headers = new Headers({ Accept: 'application/json' });
 
   // The client address, which Next.js fills from the connection unless a proxy in front (nginx in Docker) set it,
-  // lets the API count rate limits per client.
+  // lets the API count rate limits per client; the request id, from nginx, names the request in every log.
   for (const name of [
     'cookie',
     'content-type',
@@ -26,6 +26,7 @@ async function proxy(
     'x-xsrf-token',
     'user-agent',
     'x-forwarded-for',
+    'x-request-id',
   ]) {
     const value = request.headers.get(name);
     if (value) {
@@ -53,7 +54,12 @@ async function proxy(
     for (const cookie of upstream.headers.getSetCookie()) {
       responseHeaders.append('Set-Cookie', cookie);
     }
-    for (const name of ['retry-after', 'x-ratelimit-limit', 'x-ratelimit-remaining']) {
+    for (const name of [
+      'retry-after',
+      'x-ratelimit-limit',
+      'x-ratelimit-remaining',
+      'x-request-id',
+    ]) {
       const value = upstream.headers.get(name);
       if (value) {
         responseHeaders.set(name, value);

@@ -15,6 +15,12 @@ class AccountManagementTest extends TestCase
 {
     use RefreshDatabase;
 
+    /**
+     * Seeded like every other database test: on PostgreSQL the database is migrated and seeded once, by whichever
+     * test refreshes it first, so a test without the seed would leave the others without the demonstration network.
+     */
+    protected bool $seed = true;
+
     public function test_guests_can_neither_change_a_password_nor_clear_a_history_nor_delete_an_account(): void
     {
         $this->putJson('/api/v1/perfil/senha', $this->passwordChange())->assertUnauthorized();

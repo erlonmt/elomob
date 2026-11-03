@@ -15,6 +15,12 @@ class RateLimitingTest extends TestCase
 {
     use RefreshDatabase;
 
+    /**
+     * Seeded like every other database test: on PostgreSQL the database is migrated and seeded once, by whichever
+     * test refreshes it first, so a test without the seed would leave the others without the demonstration network.
+     */
+    protected bool $seed = true;
+
     public function test_each_client_behind_the_proxy_has_its_own_sign_in_limit(): void
     {
         foreach (range(1, 100) as $attempt) {

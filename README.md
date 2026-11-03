@@ -33,7 +33,7 @@ Para interromper, pressione Ctrl+C. Os dados ficam preservados nos volumes do Do
 ## Usar a aplicação
 
 1. Na página inicial, escolha Boa Viagem como origem e Recife Antigo como destino.
-2. Clique em Buscar Rota, selecione os modais e clique em Buscar Trajeto.
+2. Clique em Buscar Rota, selecione os modais e clique de novo em Buscar Rota.
 3. Defina a saída, compare as opções e abra as instruções de uma delas. Em Mapa, consulte o percurso calculado e use os controles de aproximação.
 4. Entre em Perfil e crie uma conta. Não há usuário ou senha padrão.
 5. Em Rotas, adicione um local favorito. Em Perfil, altere e salve as preferências.

@@ -53,7 +53,7 @@ export async function planTrip(
   for (const mode of MODES) {
     await page.getByRole('checkbox', { name: mode, exact: true }).setChecked(modes.includes(mode));
   }
-  await page.getByRole('button', { name: 'Buscar Trajeto' }).click();
+  await page.getByRole('button', { name: 'Buscar Rota' }).click();
   await expect(page).toHaveURL(/\/resultados\/\d+/);
 }
 

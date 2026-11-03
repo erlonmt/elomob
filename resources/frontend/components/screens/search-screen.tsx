@@ -174,7 +174,7 @@ export function SearchScreen() {
             className="button coral"
             disabled={submitting || loading || sessionLoading || Boolean(catalogError)}
           >
-            {submitting ? 'Calculando trajetos...' : 'Buscar Trajeto'}
+            {submitting ? 'Calculando trajetos...' : 'Buscar Rota'}
           </button>
           <DemoNote />
         </section>

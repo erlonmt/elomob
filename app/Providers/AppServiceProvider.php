@@ -3,7 +3,11 @@
 namespace App\Providers;
 
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Foundation\Events\DiagnosingHealth;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
@@ -23,6 +27,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // GET /up also asks the database and the cache store (Redis in Docker), so a health check sees them down.
+        Event::listen(DiagnosingHealth::class, function (): void {
+            DB::select('select 1');
+            Cache::get('health-check');
+        });
         RateLimiter::for('mobility-catalog', fn (Request $request): Limit => Limit::perMinute(60)->by('catalog:'.$this->rateLimitIdentity($request)));
         RateLimiter::for('mobility-search', function (Request $request): array {
             $limits = [Limit::perMinute(30)->by('search:'.$this->rateLimitIdentity($request))];

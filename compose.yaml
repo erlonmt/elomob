@@ -15,6 +15,8 @@ x-laravel-environment: &laravel-environment
   REDIS_PORT: 6379
   QUEUE_CONNECTION: sync
   BOOST_ENABLED: "false"
+  # Laravel writes its log to stderr, so docker compose logs shows it with the request ids.
+  LOG_CHANNEL: stderr
   # The private ranges hold the Compose network, where nginx and the Next.js proxy tell the client address.
   TRUSTED_PROXIES: 10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
 services:

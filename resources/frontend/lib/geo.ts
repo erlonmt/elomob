@@ -151,3 +151,60 @@ export function searchQuery(search: {
   }
   return query.toString();
 }
+
+/** Where a map label sits beside its point. */
+export type LabelSide = 'right' | 'left';
+
+/** Gap between a point and its label, the label's baseline above the point and the point's radius, in pixels. */
+const LABEL_GAP = 19;
+const LABEL_BASELINE = 13;
+const POINT_RADIUS = 13;
+
+type Box = { left: number; right: number; top: number; bottom: number };
+const overlaps = (first: Box, second: Box) =>
+  first.left < second.right &&
+  second.left < first.right &&
+  first.top < second.bottom &&
+  second.top < first.bottom;
+
+/**
+ * Place the labels of map points, in priority order, inside the visible part of the map (from `visible.left` to
+ * `visible.right`) and where none covers an earlier label or another point: on the side facing the centre of the
+ * visible part, else on the other side, else nowhere (null). Positions are in map units and sizes in screen pixels,
+ * which shrink in map units as the map is zoomed in, so hidden labels appear on zooming.
+ */
+export function placeLabels(
+  points: { x: number; y: number; text: string; fontSize: number }[],
+  zoom: number,
+  visible: { left: number; right: number },
+): (LabelSide | null)[] {
+  const circles = points.map(({ x, y }) => {
+    const radius = POINT_RADIUS / zoom;
+    return { left: x - radius, right: x + radius, top: y - radius, bottom: y + radius };
+  });
+  const placed: Box[] = [];
+  return points.map((point, index) => {
+    const width = (point.text.length * point.fontSize * 0.58) / zoom;
+    const gap = LABEL_GAP / zoom;
+    const top = point.y - (LABEL_BASELINE + point.fontSize) / zoom;
+    const bottom = point.y - (LABEL_BASELINE - 4) / zoom;
+    const boxes: Record<LabelSide, Box> = {
+      right: { left: point.x + gap, right: point.x + gap + width, top, bottom },
+      left: { left: point.x - gap - width, right: point.x - gap, top, bottom },
+    };
+    const sides: LabelSide[] =
+      point.x > (visible.left + visible.right) / 2 ? ['left', 'right'] : ['right', 'left'];
+    const side = sides.find(
+      candidate =>
+        boxes[candidate].left >= visible.left &&
+        boxes[candidate].right <= visible.right &&
+        !placed.some(box => overlaps(box, boxes[candidate])) &&
+        !circles.some((circle, other) => other !== index && overlaps(circle, boxes[candidate])),
+    );
+    if (!side) {
+      return null;
+    }
+    placed.push(boxes[side]);
+    return side;
+  });
+}

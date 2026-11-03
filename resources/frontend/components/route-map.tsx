@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
-import { geographicLayout, mapTiles, routeFeatures } from '@/lib/geo';
+import { geographicLayout, mapTiles, placeLabels, routeFeatures } from '@/lib/geo';
 import type { GeoJSON, Step, Stop } from '@/lib/types';
 
 const modeColors: Record<string, string> = {
@@ -12,6 +12,9 @@ const modeColors: Record<string, string> = {
   app: '#f07167',
   walk: '#526b74',
 };
+
+/** How much a trip point's label matters: the origin and final destination more than the changes between. */
+const endpointRank = (index: number, count: number) => (index === 0 || index === count - 1 ? 1 : 0);
 
 export function RouteMap({
   stops = [],
@@ -70,6 +73,45 @@ export function RouteMap({
       },
     ];
   });
+  // The part of the map on screen, in map units: the map is scaled around its centre and then moved by the offset.
+  const visibleRange = {
+    left: (0 - viewport.width / 2 - offset[0]) / zoom + viewport.width / 2,
+    right: (viewport.width / 2 - offset[0]) / zoom + viewport.width / 2,
+  };
+  const stopPoints = visibleStops
+    .filter(
+      stop => Number.isFinite(Number(stop.latitude)) && Number.isFinite(Number(stop.longitude)),
+    )
+    .map(stop => ({
+      stop,
+      position: layout.position([Number(stop.longitude), Number(stop.latitude)]),
+    }))
+    .sort(
+      (first, second) =>
+        Number(second.stop.id === selectedId) - Number(first.stop.id === selectedId),
+    );
+  const stopSides = placeLabels(
+    stopPoints.map(({ stop, position: [x, y] }) => ({ x, y, text: stop.name, fontSize: 12 })),
+    zoom,
+    visibleRange,
+  );
+  const placedStops = stopPoints.map((point, index) => ({ ...point, side: stopSides[index] }));
+  // The origin and the final destination are labelled first, then the stops where the trip changes.
+  const endpointOrder = endpoints
+    .map((_, index) => index)
+    .sort(
+      (first, second) =>
+        endpointRank(second, endpoints.length) - endpointRank(first, endpoints.length),
+    );
+  const orderedSides = placeLabels(
+    endpointOrder.map(index => {
+      const [x, y] = layout.position(endpoints[index].position);
+      return { x, y, text: endpoints[index].name, fontSize: 13 };
+    }),
+    zoom,
+    visibleRange,
+  );
+  const endpointSides = endpoints.map((_, index) => orderedSides[endpointOrder.indexOf(index)]);
   const move = (x: number, y: number) => setOffset(previous => [previous[0] + x, previous[1] + y]);
 
   return (
@@ -183,44 +225,39 @@ export function RouteMap({
               </g>
             );
           })}
-          {visibleStops
-            .filter(
-              stop =>
-                Number.isFinite(Number(stop.latitude)) && Number.isFinite(Number(stop.longitude)),
-            )
-            .map(stop => {
-              const [x, y] = layout.position([Number(stop.longitude), Number(stop.latitude)]);
-              const selected = selectedId === stop.id;
-              return (
-                <g
-                  data-stop="true"
-                  key={stop.id}
-                  transform={`translate(${x} ${y}) scale(${1 / zoom})`}
-                  role={onSelect ? 'button' : undefined}
-                  aria-label={stop.name}
-                  tabIndex={onSelect ? 0 : undefined}
-                  onClick={() => onSelect?.(stop)}
-                  onKeyDown={event => {
-                    if (event.key === 'Enter' || event.key === ' ') {
-                      event.preventDefault();
-                      onSelect?.(stop);
-                    }
-                  }}
-                  className="map-point"
-                >
-                  <circle
-                    r={selected ? 20 : 13}
-                    fill={selected ? '#e0f2f1' : 'white'}
-                    stroke="white"
-                    strokeWidth="5"
-                  />
-                  <circle
-                    r={selected ? 13 : 9}
-                    fill={stop.color ?? modeColors[stop.mode ?? 'bus'] ?? modeColors.bus}
-                  />
+          {placedStops.map(({ stop, position: [x, y], side }) => {
+            const selected = selectedId === stop.id;
+            return (
+              <g
+                data-stop="true"
+                key={stop.id}
+                transform={`translate(${x} ${y}) scale(${1 / zoom})`}
+                role={onSelect ? 'button' : undefined}
+                aria-label={stop.name}
+                tabIndex={onSelect ? 0 : undefined}
+                onClick={() => onSelect?.(stop)}
+                onKeyDown={event => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    onSelect?.(stop);
+                  }
+                }}
+                className="map-point"
+              >
+                <circle
+                  r={selected ? 20 : 13}
+                  fill={selected ? '#e0f2f1' : 'white'}
+                  stroke="white"
+                  strokeWidth="5"
+                />
+                <circle
+                  r={selected ? 13 : 9}
+                  fill={stop.color ?? modeColors[stop.mode ?? 'bus'] ?? modeColors.bus}
+                />
+                {side && (
                   <text
-                    x={x > viewport.width / 2 ? -19 : 19}
-                    textAnchor={x > viewport.width / 2 ? 'end' : 'start'}
+                    x={side === 'left' ? -19 : 19}
+                    textAnchor={side === 'left' ? 'end' : 'start'}
                     y="-13"
                     fontSize="12"
                     fontWeight={selected ? '700' : '500'}
@@ -232,11 +269,13 @@ export function RouteMap({
                   >
                     {stop.name}
                   </text>
-                </g>
-              );
-            })}
+                )}
+              </g>
+            );
+          })}
           {endpoints.map((endpoint, index) => {
             const [x, y] = layout.position(endpoint.position);
+            const side = endpointSides[index];
             return (
               <g key={index} transform={`translate(${x} ${y}) scale(${1 / zoom})`}>
                 <circle
@@ -245,19 +284,21 @@ export function RouteMap({
                   stroke="white"
                   strokeWidth="4"
                 />
-                <text
-                  x={x > viewport.width / 2 ? -16 : 16}
-                  textAnchor={x > viewport.width / 2 ? 'end' : 'start'}
-                  y="-14"
-                  fill="#11222c"
-                  fontSize="13"
-                  fontWeight="700"
-                  stroke="#edf4ee"
-                  strokeWidth="5"
-                  paintOrder="stroke"
-                >
-                  {endpoint.name}
-                </text>
+                {side && (
+                  <text
+                    x={side === 'left' ? -19 : 19}
+                    textAnchor={side === 'left' ? 'end' : 'start'}
+                    y="-13"
+                    fill="#11222c"
+                    fontSize="13"
+                    fontWeight="700"
+                    stroke="#edf4ee"
+                    strokeWidth="5"
+                    paintOrder="stroke"
+                  >
+                    {endpoint.name}
+                  </text>
+                )}
               </g>
             );
           })}

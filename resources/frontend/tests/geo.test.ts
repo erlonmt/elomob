@@ -1,6 +1,6 @@
 import { strict as assert } from 'node:assert';
 import test from 'node:test';
-import { geographicLayout, mapTiles, routeFeatures, searchQuery } from '../lib/geo.ts';
+import { geographicLayout, mapTiles, placeLabels, routeFeatures, searchQuery } from '../lib/geo.ts';
 import type { Step, Stop } from '../lib/types.ts';
 
 test('map projection preserves geographic orientation and fits route endpoints', () => {
@@ -136,4 +136,27 @@ test('panning the map loads the tiles of the area moved into view, and only thos
     assert.ok(covers(tiles, corner), `the panned view lacks ${corner}`);
   }
   assert.ok(allVisible(tiles, [600, 400, 1500, 920]));
+});
+
+test('a map label goes on the side facing the centre, else the other side, else it is hidden until zoomed in', () => {
+  const point = (x: number, y: number, text: string) => ({ x, y, text, fontSize: 12 });
+  const crowded = [point(100, 100, 'Estação Recife'), point(110, 104, 'Recife Antigo')];
+  const visible = { left: 0, right: 900 };
+
+  assert.deepEqual(placeLabels([point(100, 100, 'Pina')], 1, visible), ['right']);
+  assert.deepEqual(placeLabels([point(800, 100, 'Pina')], 1, visible), ['left']);
+  assert.deepEqual(placeLabels(crowded, 1, visible), ['right', null]);
+  assert.deepEqual(placeLabels(crowded, 4, visible), ['right', 'right']);
+  assert.deepEqual(
+    placeLabels([point(500, 100, 'Afogados'), point(430, 100, 'Boa Vista')], 1, visible),
+    ['right', 'left'],
+  );
+});
+
+test('a map label stays inside the visible part of the map, or waits for the zoom', () => {
+  const point = (x: number, text: string) => ({ x, y: 100, text, fontSize: 12 });
+  const nearTheEdge = [point(40, 'Terminal Integrado CDU'), point(90, 'Pina')];
+
+  assert.deepEqual(placeLabels(nearTheEdge, 1, { left: 0, right: 390 }), [null, 'right']);
+  assert.deepEqual(placeLabels(nearTheEdge, 4, { left: 0, right: 390 }), ['right', 'right']);
 });

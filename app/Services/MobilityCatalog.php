@@ -6,11 +6,14 @@ use App\Enums\TransportModeCode;
 use App\Http\Resources\IntegrationResource;
 use App\Http\Resources\LineResource;
 use App\Http\Resources\StopResource;
+use App\Models\Connection;
 use App\Models\Integration;
 use App\Models\Line;
 use App\Models\Stop;
 use App\Models\TransportMode;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 
 class MobilityCatalog
 {
@@ -22,12 +25,39 @@ class MobilityCatalog
      */
     public function all(): array
     {
-        return Cache::remember('mobility:catalog:v4', 30, fn (): array => [
-            'stops' => StopResource::collection(Stop::with('mode')->orderBy('name')->get())->resolve(),
-            'modes' => TransportMode::whereIn('code', TransportModeCode::selectableValues())->orderBy('id')->get()->toArray(),
-            'lines' => LineResource::collection(Line::with('mode')->orderBy('id')->get())->resolve(),
-            'integrations' => IntegrationResource::collection(Integration::with(['stop', 'fromMode', 'toMode'])->orderBy('id')->get())->resolve(),
-        ]);
+        return Cache::remember('mobility:catalog:v5', 30, function (): array {
+            $stops = Stop::with('mode')->orderBy('name')->get();
+            $routes = LineRoutes::fromStretches(Connection::whereNotNull('line_id')->get(['line_id', 'from_stop_id', 'to_stop_id', 'minutes'])->toArray());
+            $names = $stops->pluck('name', 'id');
+
+            return [
+                'stops' => StopResource::collection($stops)->resolve(),
+                'modes' => TransportMode::whereIn('code', TransportModeCode::selectableValues())->orderBy('id')->get()->toArray(),
+                'lines' => Line::with('mode')->orderBy('id')->get()
+                    ->map(fn (Line $line): array => (new LineResource($line, $this->directions($line, $routes, $names)))->resolve())
+                    ->all(),
+                'integrations' => IntegrationResource::collection(Integration::with(['stop', 'fromMode', 'toMode'])->orderBy('id')->get())->resolve(),
+            ];
+        });
+    }
+
+    /**
+     * The ways of a line with the names of their stops, the way toward the stop the line's name ends with first
+     * ("Cordeiro → Recife Antigo" lists the way to Recife Antigo first).
+     *
+     * @param  Collection<int, string>  $names  Stop names by id.
+     * @return list<array{to: string, stops: list<array{id: int, name: string, minutes: int}>}>
+     */
+    private function directions(Line $line, LineRoutes $routes, Collection $names): array
+    {
+        $ways = array_map(fn (array $stops): array => [
+            'to' => $names[$stops[array_key_last($stops)]['stop']],
+            'stops' => array_map(fn (array $stop): array => ['id' => $stop['stop'], 'name' => $names[$stop['stop']], 'minutes' => $stop['minutes']], $stops),
+        ], $routes->directions($line->id));
+        $destination = str_contains($line->name, '→') ? trim(Str::afterLast($line->name, '→')) : '';
+        usort($ways, fn (array $first, array $second): int => (int) ! str_starts_with($destination, $first['to']) <=> (int) ! str_starts_with($destination, $second['to']));
+
+        return $ways;
     }
 
     /**

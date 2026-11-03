@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Enums\TransportModeCode;
 use App\Models\Connection;
 use App\Models\Integration;
-use App\Models\Line;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
@@ -27,6 +26,7 @@ final readonly class RouteSearch
      * @param  Collection<int, EloquentCollection<int, Connection>>  $connectionsFrom  Usable connections grouped by the stop they leave from, with their mode, line and stops.
      * @param  array<int, true>  $usableStops  Ids of the stops the passenger can be at (every stop but those passed on board must be one).
      * @param  Collection<string, Integration>  $integrations  Integrations keyed by "stop id:mode code arrived with:mode code left with".
+     * @param  LineRoutes  $lineRoutes  The order of the stops along each line, which sets when a vehicle leaves each stop.
      * @param  bool  $needsAccessibleIntegrations  Whether changing service must avoid inaccessible integrations.
      * @param  CarbonImmutable  $departure  Departure instant in the network time zone.
      */
@@ -34,6 +34,7 @@ final readonly class RouteSearch
         private Collection $connectionsFrom,
         private array $usableStops,
         private Collection $integrations,
+        private LineRoutes $lineRoutes,
         private bool $needsAccessibleIntegrations,
         private CarbonImmutable $departure,
     ) {}
@@ -127,7 +128,7 @@ final readonly class RouteSearch
         $transferMinutes = $integration->transfer_minutes ?? 0;
         $boarding = $mode->boardsVehicle() && $service !== $label->service;
         $waitMinutes = $boarding && $connection->line_id
-            ? $this->waitingMinutes($connection->line, $this->departure->addMinutes($label->minutes + $transferMinutes))
+            ? $this->waitingMinutes($connection, $this->departure->addMinutes($label->minutes + $transferMinutes))
             : 0;
         if ($waitMinutes === null) {
             return null;
@@ -167,10 +168,14 @@ final readonly class RouteSearch
     }
 
     /**
-     * Minutes until the next departure of a frequency-based line, or null when it no longer runs that day.
+     * Minutes until the next vehicle of a frequency-based line leaves the connection's stop, or null when the line no
+     * longer runs that day. Vehicles leave the first stop of their way at the line's times and each later stop as
+     * many minutes later as the stretches before it take, so the arrival is moved back by those minutes.
      */
-    private function waitingMinutes(Line $line, CarbonImmutable $arrival): ?int
+    private function waitingMinutes(Connection $connection, CarbonImmutable $arrivalAtStop): ?int
     {
+        $line = $connection->line;
+        $arrival = $arrivalAtStop->subMinutes($this->lineRoutes->departureOffset($line->id, $connection->from_stop_id, $connection->to_stop_id));
         $start = $arrival->startOfDay()->setTimeFromTimeString($line->starts_at);
         $end = $arrival->startOfDay()->setTimeFromTimeString($line->ends_at);
         if ($end->lessThan($start)) {

@@ -100,10 +100,10 @@ class MobilityApiTest extends TestCase
     public function test_cached_catalog_uses_plain_arrays_and_remains_usable_after_a_cache_round_trip(): void
     {
         $cold = $this->getJson('/api/v1/catalogo')->assertOk()->assertJsonCount(17, 'data.stops');
-        $cached = Cache::get('mobility:catalog:v4');
+        $cached = Cache::get('mobility:catalog:v5');
         $this->assertIsArray($cached);
         $this->assertSame($cached, json_decode(json_encode($cached, JSON_THROW_ON_ERROR), true, 512, JSON_THROW_ON_ERROR));
-        Cache::put('mobility:catalog:v4', unserialize(serialize($cached), ['allowed_classes' => false]), 30);
+        Cache::put('mobility:catalog:v5', unserialize(serialize($cached), ['allowed_classes' => false]), 30);
 
         $warm = $this->getJson('/api/v1/catalogo')->assertOk()->assertJsonCount(17, 'data.stops')
             ->assertJsonCount(5, 'data.modes')->assertJsonCount(7, 'data.lines')->assertJsonCount(6, 'data.integrations');

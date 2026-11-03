@@ -42,6 +42,7 @@ class RoutePlanner
             connectionsFrom: $this->usableConnections($network['connections'], $needs),
             usableStops: $this->usableStops($network['stops'], $needs),
             integrations: $network['integrations'],
+            lineRoutes: $network['lineRoutes'],
             needsAccessibleIntegrations: array_any($needs, fn (AccessibilityNeed $need): bool => $need->requirements()['accessible_integration']),
             departure: $this->departure($filters['departure_at'] ?? null),
         );

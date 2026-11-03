@@ -38,18 +38,20 @@ class RouteAvailabilityTest extends TestCase
     {
         $plan = $this->busPlans('2026-10-30T04:00:00-03:00')['fastest'];
 
-        $this->assertSame(122, $plan['minutes']);
-        $this->assertSame([90, 0, 0], array_column($plan['steps'], 'wait_minutes'));
+        $this->assertSame(140, $plan['minutes']);
+        // The BRT leaves Cordeiro at 05:40, ten minutes after Terminal Integrado CDU; line 081 leaves at 05:48 and
+        // arrives at the same time.
+        $this->assertSame([100, 0, 0], array_column($plan['steps'], 'wait_minutes'));
     }
 
     public function test_frequency_wait_is_counted_once_when_continuing_on_the_same_line(): void
     {
         $plan = $this->busPlans('2026-10-30T14:31:00-03:00')['fastest'];
 
-        $this->assertSame(46, $plan['minutes']);
+        $this->assertSame(34, $plan['minutes']);
         $this->assertSame(380, $plan['cost']);
         $this->assertSame(0, $plan['transfers']);
-        $this->assertSame([14, 0, 0], array_column($plan['steps'], 'wait_minutes'));
+        $this->assertSame([2, 0, 0], array_column($plan['steps'], 'wait_minutes'));
         $this->assertSame($plan['minutes'], array_sum(array_column($plan['steps'], 'minutes')));
         $this->assertEquals($plan, $this->busPlans('2026-10-30T17:31:00Z')['fastest']);
     }
@@ -70,8 +72,8 @@ class RouteAvailabilityTest extends TestCase
         $this->withoutLines('BRT');
         $plan = $this->busPlans('2026-10-31T01:31:00-03:00')['fastest'];
 
-        $this->assertSame(46, $plan['minutes']);
-        $this->assertSame(1172, $this->busPlans('2026-10-31T03:00:00-03:00')['fastest']['minutes']);
+        $this->assertSame(34, $plan['minutes']);
+        $this->assertSame(1190, $this->busPlans('2026-10-31T03:00:00-03:00')['fastest']['minutes']);
     }
 
     public function test_an_earlier_costlier_arrival_is_preserved_to_catch_the_last_service(): void

@@ -46,7 +46,7 @@ class SpatialNetworkTest extends TestCase
         $this->assertSame('LineString', $geometry['features'][0]['geometry']['type']);
         $this->assertEquals([-34.932, -8.043], $geometry['features'][0]['geometry']['coordinates'][0]);
         $this->assertEquals([-34.871, -8.063], $geometry['features'][2]['geometry']['coordinates'][1]);
-        $this->assertSame(14, $geometry['features'][0]['properties']['wait_minutes']);
+        $this->assertSame(2, $geometry['features'][0]['properties']['wait_minutes']);
         $this->assertSame('081', $geometry['features'][0]['properties']['line_code']);
     }
 

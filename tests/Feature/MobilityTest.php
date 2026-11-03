@@ -54,7 +54,7 @@ class MobilityTest extends TestCase
     {
         $plans = app(RoutePlanner::class)->plan($this->stop('Cordeiro'), $this->stop('Recife Antigo'), ['modes' => ['bus']]);
         $this->assertEquals(380, $plans['cheapest']['cost']);
-        $this->assertEquals(32, $plans['cheapest']['minutes']);
+        $this->assertEquals(35, $plans['cheapest']['minutes']);
         $this->assertEquals(0, $plans['cheapest']['transfers']);
     }
 
@@ -74,7 +74,7 @@ class MobilityTest extends TestCase
 
         $this->assertSame(47, $fastest(['modes' => ['bus', 'metro']]));
         $this->assertSame(52, $fastest(['modes' => ['bus']]));
-        $this->assertSame(50, $fastest(['modes' => ['bus', 'metro'], 'accessibility_needs' => ['reduced_mobility']]));
+        $this->assertSame(47, $fastest(['modes' => ['bus', 'metro'], 'accessibility_needs' => ['reduced_mobility']]));
         $this->postJson('/api/v1/buscas', $this->searchData() + ['unexpected' => 'ignored'])->assertCreated();
     }
 

@@ -39,10 +39,11 @@ class MobilityNetwork
     /**
      * Load the network a search with the given modes may use: the stops keyed by id, the connections of those modes in
      * id order with their mode, line and stops, and the integrations keyed by "stop id:mode code arrived with:mode code
-     * left with". The cache keeps the whole network; only the chosen connections become models.
+     * left with", and the order of the stops along each line. The cache keeps the whole network; only the chosen
+     * connections become models.
      *
      * @param  list<string>  $modeCodes
-     * @return array{stops: EloquentCollection<int, Stop>, connections: EloquentCollection<int, Connection>, integrations: EloquentCollection<string, Integration>}
+     * @return array{stops: EloquentCollection<int, Stop>, connections: EloquentCollection<int, Connection>, integrations: EloquentCollection<string, Integration>, lineRoutes: LineRoutes}
      */
     public function load(array $modeCodes): array
     {
@@ -62,7 +63,7 @@ class MobilityNetwork
             fn (Integration $integration): string => $integration->stop_id.':'.$modes[$integration->from_mode_id]->code.':'.$modes[$integration->to_mode_id]->code,
         );
 
-        return ['stops' => $stops, 'connections' => $connections, 'integrations' => $integrations];
+        return ['stops' => $stops, 'connections' => $connections, 'integrations' => $integrations, 'lineRoutes' => LineRoutes::fromStretches($rows['connections'])];
     }
 
     /**

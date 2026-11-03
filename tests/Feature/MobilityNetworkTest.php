@@ -59,10 +59,10 @@ class MobilityNetworkTest extends TestCase
 
     public function test_the_planner_reads_the_network_from_the_cache_until_it_changes(): void
     {
-        $this->assertSame(46, $this->fastestBusMinutes());
+        $this->assertSame(34, $this->fastestBusMinutes());
 
         DB::enableQueryLog();
-        $this->assertSame(46, $this->fastestBusMinutes());
+        $this->assertSame(34, $this->fastestBusMinutes());
         $queries = array_column(DB::getQueryLog(), 'query');
         DB::disableQueryLog();
         $this->assertCount(1, $queries);
@@ -70,7 +70,7 @@ class MobilityNetworkTest extends TestCase
 
         DB::table('connections')->update(['minutes' => DB::raw('minutes + 1')]);
 
-        $this->assertSame(49, $this->fastestBusMinutes());
+        $this->assertSame(39, $this->fastestBusMinutes());
     }
 
     public function test_planning_fails_rather_than_cache_a_network_without_a_version(): void

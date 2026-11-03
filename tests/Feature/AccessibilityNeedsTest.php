@@ -42,6 +42,14 @@ class AccessibilityNeedsTest extends TestCase
     private const array BY_BUS = ['042:Estação Joana Bezerra', 'walk:Afogados', '033:Derby', '081:Boa Vista', '081:Recife Antigo'];
 
     /**
+     * The same buses to Derby, then the BRT to Boa Vista and a walk to Recife Antigo. At 15:24 the BRT is leaving
+     * Derby, while line 081 only passes at 15:32; both trips reach Recife Antigo at 15:50.
+     *
+     * @var list<string>
+     */
+    private const array BY_BUS_AND_BRT = ['042:Estação Joana Bezerra', 'walk:Afogados', '033:Derby', 'BRT:Boa Vista', 'walk:Recife Antigo'];
+
+    /**
      * Line 061 along the Via Mangue to Cais de Santa Rita, then a walk to Recife Antigo.
      *
      * @var list<string>
@@ -58,7 +66,7 @@ class AccessibilityNeedsTest extends TestCase
         return [
             'no need' => [[], self::BY_LINHA_CENTRO],
             'reduced mobility' => [['reduced_mobility'], self::BY_LINHA_SUL],
-            'visual impairment' => [['visual'], self::BY_BUS],
+            'visual impairment' => [['visual'], self::BY_BUS_AND_BRT],
             'wheelchair' => [['wheelchair'], self::BY_VIA_MANGUE],
             'hearing impairment' => [['hearing'], self::BY_VIA_MANGUE],
             'wheelchair and hearing impairment' => [['wheelchair', 'hearing'], self::BY_VIA_MANGUE],

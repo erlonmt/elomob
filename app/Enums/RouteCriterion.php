@@ -31,7 +31,8 @@ enum RouteCriterion: string
     /**
      * Whether this criterion may choose a route taking the given minutes when the fastest one takes $fastestMinutes.
      * The most sustainable route takes at most a quarter longer than the fastest, so a lower impact never costs a
-     * much longer trip; the other criteria take any route.
+     * much longer trip; the other criteria take any route. The planner measures against the fastest route without a
+     * taxi or app ride, since a ride would leave out every bus, metro and bike route.
      */
     public function accepts(int $minutes, int $fastestMinutes): bool
     {

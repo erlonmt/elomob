@@ -8,6 +8,7 @@ use App\Enums\TransportModeCode;
  * A partial route found by the route planner: the stop it reached, the service it arrived with and its totals so
  * far. A label is immutable and points to the label it extends, so a route keeps no copy of its stops or steps.
  * "paidFare" is the fare already paid for the ride in progress: the highest one of a chain of fare-integrated changes.
+ * "hired" tells whether the route took a taxi or app ride.
  */
 final readonly class RouteLabel
 {
@@ -19,6 +20,7 @@ final readonly class RouteLabel
         public string $service = '',
         public string $mode = '',
         public bool $boarded = false,
+        public bool $hired = false,
         public int $minutes = 0,
         public int $cost = 0,
         public int $paidFare = 0,
@@ -66,11 +68,13 @@ final readonly class RouteLabel
 
     /**
      * Whether this label is at least as good as the other one on every measure the route criteria rank by. When this
-     * one has arrived, every route extending the other one is at best as good, since going further only adds up.
+     * one has arrived, every route extending the other one is at best as good, since going further only adds up. A
+     * route with a taxi or app ride never outranks one without, which the most sustainable route is measured against.
      */
     public function outranks(RouteLabel $other): bool
     {
-        return $this->minutes <= $other->minutes
+        return (! $this->hired || $other->hired)
+            && $this->minutes <= $other->minutes
             && $this->cost <= $other->cost
             && $this->transfers <= $other->transfers
             && $this->impact <= $other->impact;

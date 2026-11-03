@@ -142,6 +142,7 @@ final readonly class RouteSearch
             service: $service,
             mode: $mode->value,
             boarded: $label->boarded || $boarding,
+            hired: $label->hired || $mode->isHiredPerRide(),
             minutes: $label->minutes + $minutes,
             cost: $label->cost + $cost,
             paidFare: match (true) {

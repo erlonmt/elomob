@@ -60,6 +60,16 @@ class RouteLabelTest extends TestCase
         $this->assertFalse($arrival->outranks(new RouteLabel(stop: 4, minutes: 45, cost: 450, transfers: 2, impact: 499)));
     }
 
+    public function test_a_route_with_a_taxi_or_app_ride_never_dominates_or_outranks_one_without(): void
+    {
+        $taxi = new RouteLabel(stop: 9, service: 'walk', mode: 'walk', boarded: true, hired: true, minutes: 10, cost: 300, paidFare: 300, impact: 4000);
+        $bus = new RouteLabel(stop: 9, service: 'walk', mode: 'walk', boarded: true, minutes: 20, cost: 380, paidFare: 380, transfers: 1, impact: 5000);
+
+        $this->assertFalse($taxi->dominates($bus));
+        $this->assertFalse($taxi->outranks($bus));
+        $this->assertTrue($bus->outranks(new RouteLabel(stop: 9, hired: true, minutes: 25, cost: 400, transfers: 1, impact: 6000)));
+    }
+
     /**
      * @return array{connection_id: int, minutes: int, transfer_minutes: int, wait_minutes: int, cost_cents: int, fare_integrated: bool, distance_meters: int}
      */

@@ -24,7 +24,8 @@ class RoutePlanner
      * Find, for each criterion (fastest, cheapest, transfers, sustainable), the best path from origin to
      * destination departing at "departure_at" (default: now in Recife). A single RouteSearch finds every route no
      * other one beats on all measures, and each criterion picks its best among the ones it accepts (the most
-     * sustainable takes at most a quarter longer than the fastest); the plans are keyed by the
+     * sustainable takes at most a quarter longer than the fastest route without a taxi or app ride, or than the
+     * fastest route when every one takes a ride); the plans are keyed by the
      * criterion value, in RouteCriterion order, and criteria without a path are omitted. Each accessibility need
      * keeps only the connections offering what it requires and the stops doing so wherever the passenger is at them
      * (every stop but those passed on board), and wheelchair and reduced mobility needs also avoid inaccessible
@@ -45,7 +46,8 @@ class RoutePlanner
             departure: $this->departure($filters['departure_at'] ?? null),
         );
         $arrivals = collect($search->arrivals($origin, $destination));
-        $fastestMinutes = (int) $arrivals->min('minutes');
+        $withoutRides = $arrivals->reject(fn (RouteLabel $arrival): bool => $arrival->hired);
+        $fastestMinutes = (int) ($withoutRides->isEmpty() ? $arrivals : $withoutRides)->min('minutes');
 
         $plans = [];
         foreach (RouteCriterion::cases() as $criterion) {

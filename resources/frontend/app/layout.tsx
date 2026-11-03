@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { Providers } from '@/components/providers';
 import { AppShell, Loading } from '@/components/ui';
+import '../public/assets/fonts/fonts.css';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -13,9 +14,6 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR">
-      <head>
-        <link rel="stylesheet" href="/assets/fonts/fonts.css" />
-      </head>
       <body>
         <Providers>
           <AppShell>

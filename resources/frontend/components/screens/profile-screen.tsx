@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
@@ -79,7 +80,7 @@ function ProfileForm({ user, onDeleted }: { user: User; onDeleted: () => void })
     <div className="content profile-layout">
       <form className="profile-form" onSubmit={updateProfile}>
         <div className="profile-card">
-          <img
+          <Image
             src="/assets/figma/034fd.png"
             width="60"
             height="60"

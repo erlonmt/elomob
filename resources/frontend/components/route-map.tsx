@@ -13,12 +13,16 @@ const modeColors: Record<string, string> = {
   walk: '#526b74',
 };
 
+/** No stops, as a constant so the default does not change on every render. */
+const NO_STOPS: Stop[] = [];
+const NO_STEPS: Step[] = [];
+
 /** How much a trip point's label matters: the origin and final destination more than the changes between. */
 const endpointRank = (index: number, count: number) => (index === 0 || index === count - 1 ? 1 : 0);
 
 export function RouteMap({
-  stops = [],
-  steps = [],
+  stops = NO_STOPS,
+  steps = NO_STEPS,
   geojson,
   selectedId,
   onSelect,
@@ -38,7 +42,7 @@ export function RouteMap({
   const drag = useRef<{ x: number; y: number; offset: [number, number] } | null>(null);
   const id = useId().replaceAll(':', '');
   const features = useMemo(() => routeFeatures(steps, geojson), [steps, geojson]);
-  const visibleStops = features.length ? [] : stops;
+  const visibleStops = useMemo(() => (features.length ? NO_STOPS : stops), [features, stops]);
   const layout = useMemo(
     () => geographicLayout(visibleStops, features, viewport.width, viewport.height),
     [visibleStops, features, viewport],

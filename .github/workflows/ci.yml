@@ -89,6 +89,9 @@ jobs:
       - name: Tipos (TypeScript)
         run: npm run typecheck
 
+      - name: Análise estática (ESLint)
+        run: npm run lint
+
       - name: Testes
         run: npm test
 

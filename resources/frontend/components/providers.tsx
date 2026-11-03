@@ -85,37 +85,38 @@ export function useApplication(): ApplicationContext {
   return context;
 }
 
+/**
+ * Load an API path, again on reload(). It is loading until the answer to the current path and reload arrives; the
+ * data stays the last one received meanwhile, and is null without a path.
+ */
 export function useApiData<T>(path: string | null) {
-  const [data, setData] = useState<T | null>(null);
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(Boolean(path));
   const [revision, setRevision] = useState(0);
+  const [answer, setAnswer] = useState<{ key: string | null; data: T | null; error: string }>({
+    key: null,
+    data: null,
+    error: '',
+  });
+  const key = path ? `${path}#${revision}` : null;
 
   useEffect(() => {
     if (!path) {
-      setLoading(false);
-      setData(null);
       return;
     }
     const controller = new AbortController();
-    setLoading(true);
-    setError('');
     api<T>(path, { signal: controller.signal })
-      .then(result => {
-        setData(result.data);
-      })
+      .then(result => setAnswer({ key, data: result.data, error: '' }))
       .catch(error => {
         if (!controller.signal.aborted) {
-          setError(errorMessage(error));
-        }
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) {
-          setLoading(false);
+          setAnswer(previous => ({ key, data: previous.data, error: errorMessage(error) }));
         }
       });
     return () => controller.abort();
-  }, [path, revision]);
+  }, [key, path]);
 
-  return { data, error, loading, reload: () => setRevision(value => value + 1) };
+  return {
+    data: path ? answer.data : null,
+    error: answer.key === key ? answer.error : '',
+    loading: key !== null && answer.key !== key,
+    reload: () => setRevision(value => value + 1),
+  };
 }

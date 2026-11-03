@@ -64,6 +64,8 @@ const icons: Record<string, [string, number, number]> = {
 export function Icon({ name, className = '' }: { name: string; className?: string }) {
   const [file, width, height] = icons[name] ?? icons.pin;
   return (
+    // Local SVG icons, which next/image would serve unchanged.
+    // eslint-disable-next-line @next/next/no-img-element
     <img
       className={`icon ${className}`}
       src={`/assets/figma/${file}`}

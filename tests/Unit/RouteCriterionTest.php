@@ -9,7 +9,12 @@ class RouteCriterionTest extends TestCase
 {
     public function test_criteria_follow_the_order_itineraries_are_produced(): void
     {
-        $this->assertSame(['fastest', 'cheapest', 'transfers', 'sustainable'], array_column(RouteCriterion::cases(), 'value'));
+        $this->assertSame(['fastest', 'cheapest', 'transfers', 'sustainable', 'public_transport'], array_column(RouteCriterion::cases(), 'value'));
+    }
+
+    public function test_a_profile_may_prefer_every_criterion_but_the_public_transport_option(): void
+    {
+        $this->assertSame(['fastest', 'cheapest', 'transfers', 'sustainable'], array_column(RouteCriterion::preferable(), 'value'));
     }
 
     public function test_sort_key_puts_the_optimized_measure_first_followed_by_its_tie_breakers(): void
@@ -20,6 +25,7 @@ class RouteCriterionTest extends TestCase
         $this->assertSame([20, 10, 30], RouteCriterion::Cheapest->sortKey($measures));
         $this->assertSame([30, 10, 20], RouteCriterion::Transfers->sortKey($measures));
         $this->assertSame([40, 10, 20], RouteCriterion::Sustainable->sortKey($measures));
+        $this->assertSame([10, 20, 30], RouteCriterion::PublicTransport->sortKey($measures));
     }
 
     public function test_tie_breakers_decide_between_routes_equal_on_the_optimized_measure(): void

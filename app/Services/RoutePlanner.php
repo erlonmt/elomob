@@ -25,7 +25,8 @@ class RoutePlanner
      * destination departing at "departure_at" (default: now in Recife). A single RouteSearch finds every route no
      * other one beats on all measures, and each criterion picks its best among the ones it accepts (the most
      * sustainable takes at most a quarter longer than the fastest route without a taxi or app ride, or than the
-     * fastest route when every one takes a ride); the plans are keyed by the
+     * fastest route when every one takes a ride). When none of those routes goes only by bus and metro (and on
+     * foot), the fastest such route is added as the public transport option. The plans are keyed by the
      * criterion value, in RouteCriterion order, and criteria without a path are omitted. Each accessibility need
      * keeps only the connections offering what it requires and the stops doing so wherever the passenger is at them
      * (every stop but those passed on board), and wheelchair and reduced mobility needs also avoid inaccessible
@@ -50,14 +51,22 @@ class RoutePlanner
         $withoutRides = $arrivals->reject(fn (RouteLabel $arrival): bool => $arrival->hired);
         $fastestMinutes = (int) ($withoutRides->isEmpty() ? $arrivals : $withoutRides)->min('minutes');
 
+        $byPublicTransport = fn (RouteLabel $arrival): bool => $arrival->publicTransportOnly && $arrival->boarded;
+
         $plans = [];
+        $chosen = [];
         foreach (RouteCriterion::cases() as $criterion) {
+            if ($criterion === RouteCriterion::PublicTransport && array_any($chosen, $byPublicTransport)) {
+                continue;
+            }
             /** @var RouteLabel|null $best */
             $best = $arrivals
+                ->filter(fn (RouteLabel $arrival): bool => $criterion !== RouteCriterion::PublicTransport || $byPublicTransport($arrival))
                 ->filter(fn (RouteLabel $arrival): bool => $criterion->accepts($arrival->minutes, $fastestMinutes))
                 ->sortBy(fn (RouteLabel $arrival): array => $criterion->sortKey($arrival->measures()))
                 ->first();
             if ($best !== null) {
+                $chosen[] = $best;
                 $plans[$criterion->value] = [
                     'minutes' => $best->minutes,
                     'cost' => $best->cost,

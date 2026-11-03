@@ -53,6 +53,14 @@ enum TransportModeCode: string
     }
 
     /**
+     * Whether the mode is public transport: scheduled lines anyone boards for a fare.
+     */
+    public function isPublicTransport(): bool
+    {
+        return $this === self::Bus || $this === self::Metro;
+    }
+
+    /**
      * Whether each ride with this mode is hired on its own, from stop to stop: two rides in a row are two services,
      * each charging its fare.
      */

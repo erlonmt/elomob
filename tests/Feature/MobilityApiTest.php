@@ -195,7 +195,7 @@ class MobilityApiTest extends TestCase
         $response = $this->postJson('/api/v1/buscas', $this->searchData())->assertCreated()
             ->assertJsonPath('source', 'demo')
             ->assertJsonPath('data.origin', 'Boa Viagem')->assertJsonPath('data.destination', 'Recife Antigo')
-            ->assertJsonCount(4, 'data.itineraries')->assertJsonMissingPath('data.session_hash');
+            ->assertJsonCount(5, 'data.itineraries')->assertJsonMissingPath('data.session_hash');
         $search = $response->json('data');
         $this->getJson('/api/v1/buscas/'.$search['id'])->assertOk()->assertJsonPath('data.filters.modes', $this->searchData()['modes']);
         foreach ($search['itineraries'] as $itinerary) {
@@ -342,6 +342,8 @@ class MobilityApiTest extends TestCase
         $this->putJson('/api/v1/perfil', $data + ['accessibility_needs' => 'visual'])->assertUnprocessable()
             ->assertJsonValidationErrors(['accessibility_needs' => 'O campo tipos de necessidade deve ser uma lista.']);
         $this->assertSame([], $user->fresh()->accessibility_needs);
+        $this->putJson('/api/v1/perfil', array_replace($data, ['preferred_route' => 'public_transport', 'accessibility_needs' => []]))->assertUnprocessable()
+            ->assertJsonValidationErrors('preferred_route');
     }
 
     public function test_profile_lists_reject_objects_with_a_portuguese_message(): void
@@ -390,10 +392,10 @@ class MobilityApiTest extends TestCase
     public function test_search_and_itinerary_responses_return_criteria_as_plain_strings(): void
     {
         $search = $this->postJson('/api/v1/buscas', $this->searchData())->assertCreated()
-            ->assertJsonPath('data.itineraries.*.criterion', ['fastest', 'cheapest', 'transfers', 'sustainable'])->json('data');
+            ->assertJsonPath('data.itineraries.*.criterion', ['fastest', 'cheapest', 'transfers', 'sustainable', 'public_transport'])->json('data');
 
         $this->getJson('/api/v1/buscas/'.$search['id'])->assertOk()
-            ->assertJsonPath('data.itineraries.*.criterion', ['fastest', 'cheapest', 'transfers', 'sustainable']);
+            ->assertJsonPath('data.itineraries.*.criterion', ['fastest', 'cheapest', 'transfers', 'sustainable', 'public_transport']);
         $this->getJson('/api/v1/trajetos/'.$search['itineraries'][2]['id'])->assertOk()->assertJsonPath('data.criterion', 'transfers');
     }
 

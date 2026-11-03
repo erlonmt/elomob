@@ -30,7 +30,7 @@ class UpdateProfileRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:100'],
             'email' => ['required', 'email', 'max:255', Rule::unique(User::class)->ignore($this->user())],
-            'preferred_route' => ['required', Rule::enum(RouteCriterion::class)],
+            'preferred_route' => ['required', Rule::enum(RouteCriterion::class)->only(RouteCriterion::preferable())],
             'transport_modes' => ['required', 'list', 'min:1', 'max:'.count(TransportModeCode::selectable())],
             'transport_modes.*' => ['distinct', Rule::enum(TransportModeCode::class)->only(TransportModeCode::selectable())],
             'accessibility_needs' => ['sometimes', 'list', 'max:'.count(AccessibilityNeed::cases())],

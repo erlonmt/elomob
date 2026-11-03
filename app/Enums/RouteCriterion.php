@@ -3,7 +3,8 @@
 namespace App\Enums;
 
 /**
- * Ranking criteria a search is planned for, in the order the itineraries are produced.
+ * Ranking criteria a search is planned for, in the order the itineraries are produced. The public transport option
+ * is the fastest trip only by bus and metro (and on foot), offered only when no other criterion chose such a trip.
  */
 enum RouteCriterion: string
 {
@@ -11,6 +12,17 @@ enum RouteCriterion: string
     case Cheapest = 'cheapest';
     case Transfers = 'transfers';
     case Sustainable = 'sustainable';
+    case PublicTransport = 'public_transport';
+
+    /**
+     * The criteria a profile may prefer: all but the public transport option, which only fills a gap in the others.
+     *
+     * @return list<self>
+     */
+    public static function preferable(): array
+    {
+        return [self::Fastest, self::Cheapest, self::Transfers, self::Sustainable];
+    }
 
     /**
      * Sort key of a route's measures for this criterion: the measure it optimizes first, then its tie-breakers.
@@ -21,7 +33,7 @@ enum RouteCriterion: string
     public function sortKey(array $measures): array
     {
         return match ($this) {
-            self::Fastest => [$measures['minutes'], $measures['cost'], $measures['transfers']],
+            self::Fastest, self::PublicTransport => [$measures['minutes'], $measures['cost'], $measures['transfers']],
             self::Cheapest => [$measures['cost'], $measures['minutes'], $measures['transfers']],
             self::Transfers => [$measures['transfers'], $measures['minutes'], $measures['cost']],
             self::Sustainable => [$measures['impact'], $measures['minutes'], $measures['cost']],

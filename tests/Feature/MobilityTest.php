@@ -39,7 +39,7 @@ class MobilityTest extends TestCase
     {
         $this->postJson('/api/v1/buscas', $this->searchData())->assertCreated();
         $plans = DB::table('itineraries')->get();
-        $this->assertCount(4, $plans);
+        $this->assertCount(5, $plans);
         foreach ($plans as $plan) {
             $steps = DB::table('itinerary_steps')->where('itinerary_id', $plan->id);
             $this->assertEquals($plan->total_minutes, (clone $steps)->sum('minutes'));

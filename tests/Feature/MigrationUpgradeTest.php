@@ -32,6 +32,7 @@ class MigrationUpgradeTest extends TestCase
             'database/migrations/2026_11_02_004520_add_accessibility_needs_and_features.php',
             'database/migrations/2026_11_02_132510_add_fare_integration_to_integrations_and_steps.php',
             'database/migrations/2026_11_02_141210_create_network_versions_table.php',
+            'database/migrations/2026_11_03_020000_allow_the_public_transport_criterion_on_itineraries.php',
         ];
         $firstLineOfEachStretch = DB::table('connections')->selectRaw('MIN(id)')->groupBy('from_stop_id', 'to_stop_id', 'transport_mode_id');
         DB::table('connections')->whereNotIn('id', $firstLineOfEachStretch)->delete();
@@ -130,7 +131,8 @@ class MigrationUpgradeTest extends TestCase
             'database/migrations/2026_11_02_004520_add_accessibility_needs_and_features.php',
             'database/migrations/2026_11_02_132510_add_fare_integration_to_integrations_and_steps.php',
             'database/migrations/2026_11_02_141210_create_network_versions_table.php',
-        ], '--step' => 3, '--force' => true, '--no-interaction' => true])->assertExitCode(0);
+            'database/migrations/2026_11_03_020000_allow_the_public_transport_criterion_on_itineraries.php',
+        ], '--step' => 4, '--force' => true, '--no-interaction' => true])->assertExitCode(0);
 
         $this->assertFalse(Schema::hasColumn('users', 'accessibility_needs'));
         foreach ($needsBySwitches as $case => [, $switches]) {

@@ -144,6 +144,8 @@ class DatabaseIntegrityTest extends TestCase
 
         foreach (RouteCriterion::cases() as $criterion) {
             Itinerary::factory()->for($search)->optimizedFor($criterion)->create();
+        }
+        foreach (RouteCriterion::preferable() as $criterion) {
             $user = User::factory()->create();
             $user->forceFill(['preferred_route' => $criterion])->save();
 
@@ -151,6 +153,8 @@ class DatabaseIntegrityTest extends TestCase
         }
 
         $this->assertSame(RouteCriterion::cases(), $search->itineraries()->pluck('criterion')->all());
+        $this->expectExceptionMessage('users_preferred_route');
+        User::factory()->create()->forceFill(['preferred_route' => RouteCriterion::PublicTransport])->save();
     }
 
     /**

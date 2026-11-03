@@ -282,6 +282,40 @@ class MobilityApiTest extends TestCase
         $this->assertDatabaseCount('trip_searches', 0);
     }
 
+    public function test_a_departure_must_be_from_today_up_to_ninety_days_ahead_in_recife(): void
+    {
+        $accepted = [
+            'start of today' => '2026-10-30T00:00:00-03:00',
+            'earlier today, without an offset (Recife time)' => '2026-10-30T01:00',
+            'last minute of the 90th day' => '2027-01-28T23:59:00-03:00',
+        ];
+        foreach ($accepted as $case => $departure) {
+            $this->postJson('/api/v1/buscas', array_replace($this->searchData(), ['departure_at' => $departure]))->assertCreated();
+        }
+
+        $rejected = [
+            'yesterday' => ['2026-10-29T23:59:00-03:00', 'Escolha uma saída a partir de hoje.'],
+            'yesterday in Recife, today in UTC' => ['2026-10-30T02:30:00Z', 'Escolha uma saída a partir de hoje.'],
+            'long ago' => ['1900-01-01T10:00:00-03:00', 'Escolha uma saída a partir de hoje.'],
+            'the 91st day' => ['2027-01-29T00:00:00-03:00', 'Escolha uma saída nos próximos 90 dias.'],
+            'far ahead' => ['9999-01-01T10:00:00-03:00', 'Escolha uma saída nos próximos 90 dias.'],
+        ];
+        foreach ($rejected as $case => [$departure, $message]) {
+            $this->postJson('/api/v1/buscas', array_replace($this->searchData(), ['departure_at' => $departure]))->assertUnprocessable()
+                ->assertJsonValidationErrors(['departure_at' => $message]);
+        }
+        $this->assertDatabaseCount('trip_searches', count($accepted));
+    }
+
+    public function test_in_the_evening_a_departure_earlier_the_same_day_in_recife_is_still_today(): void
+    {
+        // 22:00 in Recife is already the next day in UTC.
+        $this->travelTo(Carbon::parse('2026-10-30 22:00:00', 'America/Recife'));
+
+        $this->postJson('/api/v1/buscas', array_replace($this->searchData(), ['departure_at' => '2026-10-30T20:00:00-03:00']))->assertCreated();
+        $this->postJson('/api/v1/buscas', array_replace($this->searchData(), ['departure_at' => '2026-10-30T20:00']))->assertCreated();
+    }
+
     public function test_guest_searches_are_available_only_to_the_creating_session(): void
     {
         $search = $this->postJson('/api/v1/buscas', $this->searchData())->assertCreated()->json('data');

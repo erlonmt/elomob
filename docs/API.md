@@ -110,7 +110,7 @@ Uma parada tem `id`, `name`, `address`, `latitude`, `longitude`, `accessible` (a
 | `origin_id` | Obrigatório; id de uma parada, vindo de `/catalogo` ou `/paradas` |
 | `destination_id` | Obrigatório; outra parada, diferente da origem |
 | `modes` | Obrigatório; lista de modais, como em "Códigos aceitos" |
-| `departure_at` | Opcional; data e hora da saída. Sem fuso, vale o horário do Recife. Sem o campo, a busca é para sair agora |
+| `departure_at` | Opcional; data e hora da saída, de hoje até o fim do 90º dia seguinte, contados no Recife. Sem fuso, vale o horário do Recife. Sem o campo, a busca é para sair agora |
 
 Com login, a busca usa os tipos de necessidade do perfil: só entram trajetos com os recursos que cada tipo exige (tabela em [BANCO_DE_DADOS.md](BANCO_DE_DADOS.md#acessibilidade)). Para visitantes, a lista fica vazia. O que foi usado fica gravado em `filters`, com `modes` e `accessibility_needs`.
 

@@ -70,7 +70,7 @@ Na carga, só a Estação Joana Bezerra integra a tarifa, entre ônibus e metrô
 - Buscas sem conta (de visitantes ou de contas excluídas) são apagadas uma semana depois de criadas por uma limpeza diária (`model:prune`); só a sessão que fez a busca de visitante consegue abri-la de novo. As buscas de cada conta continuam no histórico.
 - PostgreSQL verifica coordenadas válidas, duração e distância positivas nas conexões e origem diferente do destino.
 - Frequências, durações, distâncias e posições são positivas; tarifas, custos, quantidades de bicicletas e vagas, trocas e tempos de integração nunca são negativos; a espera somada ao tempo de integração de um passo não ultrapassa a duração dele. O `unsigned` do Laravel não tem efeito no PostgreSQL, por isso essas regras são restrições CHECK.
-- O critério de um itinerário e a rota preferida do usuário só aceitam os quatro critérios calculados pela aplicação.
+- A rota preferida do usuário só aceita os quatro critérios calculados pela aplicação; o critério de um itinerário aceita também `public_transport`, a opção de transporte público.
 - `users.accessibility_needs` é sempre uma lista e só aceita os quatro tipos de necessidade.
 - Uma conexão com linha cobra a tarifa da linha e não guarda tarifa própria; só conexões sem linha (táxi, aplicativo, bicicleta e caminhada) têm `boarding_fare_cents`. Uma chave estrangeira composta para `lines (id, transport_mode_id)` mantém o modal da conexão igual ao da linha, e mudar o modal de uma linha atualiza suas conexões.
 - As conexões referenciadas por passos não podem ser excluídas.

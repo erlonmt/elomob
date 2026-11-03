@@ -1,5 +1,5 @@
 x-laravel-environment: &laravel-environment
-  APP_ENV: local
+  APP_ENV: production
   APP_DEBUG: "false"
   APP_URL: http://localhost:8000
   DB_CONNECTION: pgsql
@@ -15,23 +15,40 @@ x-laravel-environment: &laravel-environment
   REDIS_PORT: 6379
   QUEUE_CONNECTION: sync
   BOOST_ENABLED: "false"
+  # The private ranges hold the Compose network, where nginx and the Next.js proxy tell the client address.
+  TRUSTED_PROXIES: 10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
 services:
+  web:
+    image: nginx:1.30-alpine
+    ports:
+      - "127.0.0.1:8000:8000"
+      - "127.0.0.1:8002:8080"
+    volumes:
+      - ./docker/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      app:
+        condition: service_healthy
+      frontend:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--output-document=/dev/null", "http://127.0.0.1:8080/up"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
   frontend:
     build:
       context: .
       dockerfile: resources/frontend/Dockerfile
-    ports:
-      - "127.0.0.1:8000:3000"
     environment:
-      BACKEND_URL: http://app:8000
+      BACKEND_URL: http://web:8080
       NODE_ENV: production
     depends_on:
       app:
         condition: service_healthy
   app:
-    build: .
-    ports:
-      - "127.0.0.1:8002:8000"
+    build:
+      context: .
+      target: production
     environment: *laravel-environment
     volumes:
       - app_storage:/app/storage
@@ -41,19 +58,38 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "php", "-r", "exit(@file_get_contents('http://127.0.0.1:8000/up') === false ? 1 : 0);"]
+      # PHP-FPM opens its port after the migrations and the demonstration data.
+      test: ["CMD", "php", "-r", "exit(@fsockopen('127.0.0.1', 9000) ? 0 : 1);"]
       interval: 5s
       timeout: 5s
       retries: 20
       start_period: 30s
   scheduler:
-    build: .
+    build:
+      context: .
+      target: production
+    user: www-data
     entrypoint: ["php", "artisan", "schedule:work", "--no-interaction"]
     environment: *laravel-environment
     volumes:
       - app_storage:/app/storage
     depends_on:
       app:
+        condition: service_healthy
+  # The PHPUnit suites, with the development packages: docker compose run --rm test (SQLite) or
+  # docker compose run --rm test composer test:pgsql (PostgreSQL, in the disposable elomob_test database).
+  test:
+    profiles: ["test"]
+    build:
+      context: .
+      target: test
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USERNAME: elomob
+      DB_PASSWORD: elomob_local
+    depends_on:
+      db:
         condition: service_healthy
   db:
     image: postgis/postgis:18-3.6-alpine

@@ -1,7 +1,15 @@
 #!/bin/sh
 set -eu
-if [ ! -f .env ]; then cp .env.example .env; fi
-mkdir -p storage/app storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs
+# As root, the script hands the storage volume (root-owned when an older image created it) and .env to www-data,
+# runs itself again as www-data to prepare the application, then starts PHP-FPM. Its master process keeps root only
+# to open the logs and the port; the workers that answer requests run as www-data (pool "www").
+if [ "$(id -u)" = "0" ]; then
+  if [ ! -f .env ]; then cp .env.example .env; fi
+  mkdir -p storage/app storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs
+  chown -R www-data:www-data storage bootstrap/cache .env
+  setpriv --reuid=www-data --regid=www-data --init-groups "$0"
+  exec php-fpm
+fi
 if [ -z "${APP_KEY:-}" ]; then
   if [ -s storage/app/app-key ]; then
     APP_KEY="$(cat storage/app/app-key)"
@@ -21,11 +29,12 @@ file_put_contents(".env", $environment);
 file_put_contents("storage/app/app-key", $key."\n");
 chmod("storage/app/app-key", 0600);
 '
-php artisan config:clear --no-interaction
+php artisan optimize:clear --no-interaction
 php artisan migrate --force --no-interaction
 if [ "${SEED_DEMO_DATA:-true}" = "true" ]; then
   php artisan db:seed --force --no-interaction
 fi
-# The built-in PHP server answers one request at a time unless it forks workers.
-export PHP_CLI_SERVER_WORKERS="${PHP_CLI_SERVER_WORKERS:-4}"
-exec php artisan serve --host=0.0.0.0 --port=8000 --no-reload --no-interaction
+# Configuration, routes and events are read once and cached, as in production (the API has no views).
+php artisan config:cache --no-interaction
+php artisan route:cache --no-interaction
+php artisan event:cache --no-interaction

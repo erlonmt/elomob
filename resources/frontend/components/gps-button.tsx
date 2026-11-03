@@ -2,17 +2,20 @@
 
 import { useState } from 'react';
 import { errorMessage } from '@/lib/api';
-import { nearestStop } from '@/lib/location';
+import { nearbyStops } from '@/lib/location';
 import type { Stop } from '@/lib/types';
 
-/** Button that finds the registered stop closest to the device and hands it to the form. */
+/**
+ * Button that finds the registered stop closest to the device and hands it to the form, with every stop within
+ * 5 km, closest first.
+ */
 export function GpsButton({
   disabled,
   onLocate,
   onError,
 }: {
   disabled: boolean;
-  onLocate: (stop: Stop) => void;
+  onLocate: (stop: Stop, nearby: Stop[]) => void;
   onError: (message: string) => void;
 }) {
   const [locating, setLocating] = useState(false);
@@ -26,7 +29,8 @@ export function GpsButton({
         setLocating(true);
         onError('');
         try {
-          onLocate(await nearestStop());
+          const nearby = await nearbyStops();
+          onLocate(nearby[0], nearby);
         } catch (error) {
           onError(errorMessage(error));
         } finally {

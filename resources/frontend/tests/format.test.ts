@@ -1,6 +1,6 @@
 import { strict as assert } from 'node:assert';
 import test from 'node:test';
-import { distance, initials, money, stepFare } from '../lib/format.ts';
+import { distance, initials, money, shortDistance, stepFare } from '../lib/format.ts';
 
 test('fares in cents are shown as Brazilian reais', () => {
   assert.equal(money(380), 'R$ 3,80');
@@ -12,6 +12,13 @@ test('distances in meters are shown in kilometers with at most one decimal', () 
   assert.equal(distance(4200), '4,2 km');
   assert.equal(distance(550), '0,6 km');
   assert.equal(distance(8000), '8 km');
+});
+
+test('short distances are shown in meters, rounded to tens, and longer ones in kilometers', () => {
+  assert.equal(shortDistance(0), '0 m');
+  assert.equal(shortDistance(284.6), '280 m');
+  assert.equal(shortDistance(995), '1 km');
+  assert.equal(shortDistance(1450), '1,5 km');
 });
 
 test('a step says what it charges, and a fare-integrated one only the difference', () => {

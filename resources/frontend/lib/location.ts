@@ -1,8 +1,11 @@
 import { api } from './api';
 import type { Stop } from './types';
 
-/** Find the registered stop closest to the device, within 5 km, asking the browser for the location. */
-export async function nearestStop(): Promise<Stop> {
+/**
+ * Find the registered stops within 5 km of the device, closest first and each with its "distance_meters", asking
+ * the browser for the location. Fails when there is none.
+ */
+export async function nearbyStops(): Promise<Stop[]> {
   if (!navigator.geolocation) {
     throw new Error('Seu navegador não oferece localização. Escolha uma origem na lista.');
   }
@@ -29,5 +32,10 @@ export async function nearestStop(): Promise<Stop> {
       'Não há paradas cadastradas em até 5 km da sua localização. Escolha um local da rede demonstrativa.',
     );
   }
-  return result.data[0];
+  return result.data;
+}
+
+/** Find the registered stop closest to the device, within 5 km. */
+export async function nearestStop(): Promise<Stop> {
+  return (await nearbyStops())[0];
 }

@@ -7,6 +7,11 @@ import { GpsButton } from '@/components/gps-button';
 import { useApplication } from '@/components/providers';
 import { StopSelect } from '@/components/stop-select';
 import { Brand, DemoNote, Icon, Loading, Notice } from '@/components/ui';
+import { shortDistance } from '@/lib/format';
+import type { Stop } from '@/lib/types';
+
+/** How many of the stops near the visitor the home screen lists after the GPS finds them. */
+const NEARBY_SHOWN = 3;
 
 export function HomeScreen() {
   const { catalog, user, loading, catalogError, refreshCatalog } = useApplication();
@@ -14,6 +19,7 @@ export function HomeScreen() {
   const [origin, setOrigin] = useState('');
   const [destination, setDestination] = useState('');
   const [error, setError] = useState('');
+  const [nearby, setNearby] = useState<Stop[] | null>(null);
   const bus = catalog.lines.find(line => line.mode === 'bus');
   const metro = catalog.stops.find(
     stop =>
@@ -62,7 +68,10 @@ export function HomeScreen() {
               />
               <GpsButton
                 disabled={loading}
-                onLocate={stop => setOrigin(String(stop.id))}
+                onLocate={(stop, stops) => {
+                  setOrigin(String(stop.id));
+                  setNearby(stops.slice(0, NEARBY_SHOWN));
+                }}
                 onError={setError}
               />
             </label>
@@ -100,49 +109,74 @@ export function HomeScreen() {
             <h2>Transportes próximos</h2>
             <Link href="/mapa">Ver mapa</Link>
           </div>
-          <p className="section-description">
-            Explore a rede cadastrada ou use o GPS para encontrar uma parada.
+          <p className="section-description" aria-live="polite">
+            {nearby
+              ? 'As paradas mais perto de você.'
+              : 'Explore a rede cadastrada ou use o GPS para encontrar uma parada.'}
           </p>
-          <div className="stack">
-            {bus && (
-              <Link href={`/horarios?q=${encodeURIComponent(bus.code)}`} className="nearby-card">
-                <span className="icon-tile">
-                  <Icon name="bus-card" />
-                </span>
-                <span className="card-info">
-                  <strong>Ônibus {bus.code}</strong>
-                  <small>{bus.name}</small>
-                </span>
-                <span className="badge">Demo</span>
-              </Link>
-            )}
-            {metro && (
-              <Link href={`/mapa?q=${encodeURIComponent(metro.name)}`} className="nearby-card">
-                <span className="icon-tile">
-                  <Icon name="metro-card" />
-                </span>
-                <span className="card-info">
-                  <strong>{metro.name}</strong>
-                  <small>Metrô · Rede cadastrada</small>
-                </span>
-                <span className="badge">Demo</span>
-              </Link>
-            )}
-            {bike && (
-              <Link href="/mapa?mode=bike" className="nearby-card">
-                <span className="icon-tile">
-                  <Icon name="bike-card" />
-                </span>
-                <span className="card-info">
-                  <strong>{bike.name}</strong>
-                  <small>
-                    {bike.bikes_available} disponíveis · {bike.docks_available} vagas
-                  </small>
-                </span>
-                <span className="badge">Demo</span>
-              </Link>
-            )}
-          </div>
+          {nearby ? (
+            <div className="stack">
+              {nearby.map(stop => (
+                <Link
+                  href={`/mapa?q=${encodeURIComponent(stop.name)}`}
+                  className="nearby-card"
+                  key={stop.id}
+                >
+                  <span className="icon-tile">
+                    <Icon name={`${stop.mode}-card`} />
+                  </span>
+                  <span className="card-info">
+                    <strong>{stop.name}</strong>
+                    <small>
+                      {stop.mode_name} · {shortDistance(stop.distance_meters ?? 0)}
+                    </small>
+                  </span>
+                  <span className="badge">Demo</span>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="stack">
+              {bus && (
+                <Link href={`/horarios?q=${encodeURIComponent(bus.code)}`} className="nearby-card">
+                  <span className="icon-tile">
+                    <Icon name="bus-card" />
+                  </span>
+                  <span className="card-info">
+                    <strong>Ônibus {bus.code}</strong>
+                    <small>{bus.name}</small>
+                  </span>
+                  <span className="badge">Demo</span>
+                </Link>
+              )}
+              {metro && (
+                <Link href={`/mapa?q=${encodeURIComponent(metro.name)}`} className="nearby-card">
+                  <span className="icon-tile">
+                    <Icon name="metro-card" />
+                  </span>
+                  <span className="card-info">
+                    <strong>{metro.name}</strong>
+                    <small>Metrô · Rede cadastrada</small>
+                  </span>
+                  <span className="badge">Demo</span>
+                </Link>
+              )}
+              {bike && (
+                <Link href="/mapa?mode=bike" className="nearby-card">
+                  <span className="icon-tile">
+                    <Icon name="bike-card" />
+                  </span>
+                  <span className="card-info">
+                    <strong>{bike.name}</strong>
+                    <small>
+                      {bike.bikes_available} disponíveis · {bike.docks_available} vagas
+                    </small>
+                  </span>
+                  <span className="badge">Demo</span>
+                </Link>
+              )}
+            </div>
+          )}
           {catalogError && (
             <>
               <Notice>{catalogError}</Notice>

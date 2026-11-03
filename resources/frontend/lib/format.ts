@@ -8,6 +8,10 @@ export const money = (cents: number) =>
 export const distance = (meters: number) =>
   `${new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1 }).format(meters / 1000)} km`;
 
+/** Format a distance to walk: meters rounded to tens below 1 km, e.g. "280 m", otherwise as distance() does. */
+export const shortDistance = (meters: number) =>
+  Math.round(meters / 10) * 10 < 1000 ? `${Math.round(meters / 10) * 10} m` : distance(meters);
+
 /** The initials of the first and last names, in capitals, e.g. "EM" for "Erlon Moura". */
 export function initials(name: string) {
   const words = name

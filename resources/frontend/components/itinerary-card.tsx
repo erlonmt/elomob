@@ -11,6 +11,7 @@ const criterionLabels: Record<string, { label: string; icon: string }> = {
   cheapest: { label: 'Mais econômica', icon: 'cheapest' },
   transfers: { label: 'Menos transferências', icon: 'integration' },
   sustainable: { label: 'Mais sustentável', icon: 'sustainable' },
+  public_transport: { label: 'Transporte público', icon: 'bus-small' },
 };
 
 export function ItineraryCard({

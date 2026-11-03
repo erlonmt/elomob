@@ -31,6 +31,21 @@ test('a guest plans a bus and metro trip and pays a single fare at the integrate
   await expect(page.locator('.journey-summary')).toContainText(/R\$\s3,80/);
 });
 
+test('with every mode, the trip by bus and metro is still offered as the public transport option', async ({
+  page,
+}) => {
+  await planTrip(page, {
+    origin: 'Boa Viagem',
+    destination: 'Recife Antigo',
+    modes: ['Ônibus', 'Metrô', 'Bicicleta', 'Táxi', 'Aplicativo'],
+  });
+
+  await expect(page.getByRole('link').filter({ hasText: 'Mais rápida' })).toContainText('Táxi');
+  const publicTransport = page.getByRole('link').filter({ hasText: 'Transporte público' });
+  await expect(publicTransport).toContainText('47 min');
+  await expect(publicTransport).toContainText('Ônibus 042 → Metrô CENTRO → Caminhada');
+});
+
 test('without the metro the trip changes and the results say which criteria chose it', async ({
   page,
 }) => {

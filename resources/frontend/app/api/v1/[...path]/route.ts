@@ -17,7 +17,16 @@ async function proxy(
   );
   const headers = new Headers({ Accept: 'application/json' });
 
-  for (const name of ['cookie', 'content-type', 'x-csrf-token', 'x-xsrf-token', 'user-agent']) {
+  // The client address, which Next.js fills from the connection unless a proxy in front (nginx in Docker) set it,
+  // lets the API count rate limits per client.
+  for (const name of [
+    'cookie',
+    'content-type',
+    'x-csrf-token',
+    'x-xsrf-token',
+    'user-agent',
+    'x-forwarded-for',
+  ]) {
     const value = request.headers.get(name);
     if (value) {
       headers.set(name, value);

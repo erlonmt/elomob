@@ -84,7 +84,7 @@ O perfil tem `id`, `name`, `email`, `preferred_route`, `transport_modes` e `acce
 
 | Campo | Valores |
 | --- | --- |
-| `preferred_route` e `criterion` | `fastest` (mais rápido), `cheapest` (mais barato), `transfers` (menos integrações) e `sustainable` (mais sustentável, entre os trajetos que levam no máximo 25% a mais que o mais rápido sem táxi nem aplicativo, ou que o mais rápido quando todos usam uma corrida) |
+| `preferred_route` e `criterion` | `fastest` (mais rápido), `cheapest` (mais barato), `transfers` (menos integrações) e `sustainable` (mais sustentável, entre os trajetos que levam no máximo 25% a mais que o mais rápido sem táxi nem aplicativo, ou que o mais rápido quando todos usam uma corrida). Só em `criterion`, também `public_transport`: o trajeto mais rápido só de ônibus e metrô (e a pé), que a busca inclui quando nenhum dos outros quatro escolheu um trajeto assim; `PUT /perfil` recusa esse valor em `preferred_route` |
 | `transport_modes` e `modes` | `bus`, `metro`, `bike`, `taxi` e `app`, ao menos um e sem repetir |
 | `mode` nos filtros | Os cinco acima e `walk` |
 

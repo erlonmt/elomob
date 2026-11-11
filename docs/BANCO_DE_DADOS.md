@@ -4,19 +4,21 @@ O modelo separa a rede de transporte das informações particulares do usuário.
 
 ## Tabelas do domínio
 
-| Tabela | Dados e relações |
-| --- | --- |
-| users | Conta, senha com hash, e, em `jsonb`, modais preferidos e tipos de necessidade de acessibilidade (`accessibility_needs`) |
-| transport_modes | Código único, nome e cor de cada modal |
-| stops | Local, endereço, coordenadas, `location` geográfico gerado pelo PostGIS, modal principal, recursos de acessibilidade (`accessible`, `tactile_paving` e `visual_signs`) e disponibilidade demonstrativa de bicicletas |
-| lines | Linha, modal, janela de funcionamento, frequência e tarifa |
-| connections | Origem, destino, geometria `path` LineString, modal, linha opcional, duração, distância, tarifa de embarque própria quando não há linha e recursos de acessibilidade (`accessible`, `has_stairs`, `adapted`, `audible_signals` e `visual_signs`) |
-| integrations | Troca de um modal para outro em um local, em um sentido, com tempo gasto, acessibilidade, integração tarifária (`fare_integrated`) e descrição; a carga registra os dois sentidos |
-| saved_places | Nome dado pelo usuário a uma parada, com unicidade por usuário e nome |
-| trip_searches | Origem, destino, saída pedida (`departure_at`, vazia quando a busca é para sair na hora), opções da busca em `filters` (modais e tipos de necessidade), usuário opcional, hash de sessão e data |
-| itineraries | Critério e totais de uma opção calculada para uma busca |
-| network_versions | Versão atual da rede, em uma única linha. Gatilhos a renovam quando muda uma tabela da rede, e o planejador guarda a rede no Redis sob essa versão |
-| itinerary_steps | Sequência de conexões, valores calculados por etapa, `wait_minutes` e `transfer_minutes` incluídos na duração e `fare_integrated` quando a etapa embarcou por uma integração tarifária |
+As tabelas formam três grupos, na mesma ordem do script `01_schema.sql`.
+
+| Grupo | Tabela | Dados e relações |
+| --- | --- | --- |
+| Rede de transporte | transport_modes | Código único, nome e cor de cada modal |
+| | stops | Local, endereço, coordenadas, `location` geográfico gerado pelo PostGIS, modal principal, recursos de acessibilidade (`accessible`, `tactile_paving` e `visual_signs`) e disponibilidade demonstrativa de bicicletas |
+| | lines | Linha, modal, janela de funcionamento, frequência e tarifa |
+| | connections | Origem, destino, geometria `path` LineString, modal, linha opcional, duração, distância, tarifa de embarque própria quando não há linha e recursos de acessibilidade (`accessible`, `has_stairs`, `adapted`, `audible_signals` e `visual_signs`) |
+| | integrations | Troca de um modal para outro em um local, em um sentido, com tempo gasto, acessibilidade, integração tarifária (`fare_integrated`) e descrição; a carga registra os dois sentidos |
+| | network_versions | Versão atual da rede, em uma única linha. Gatilhos a renovam quando muda uma tabela da rede, e o planejador guarda a rede no Redis sob essa versão |
+| Usuários | users | Conta, senha com hash, e, em `jsonb`, modais preferidos e tipos de necessidade de acessibilidade (`accessibility_needs`) |
+| | saved_places | Nome dado pelo usuário a uma parada, com unicidade por usuário e nome |
+| Buscas e resultados | trip_searches | Origem, destino, saída pedida (`departure_at`, vazia quando a busca é para sair na hora), opções da busca em `filters` (modais e tipos de necessidade), usuário opcional, hash de sessão e data |
+| | itineraries | Critério e totais de uma opção calculada para uma busca |
+| | itinerary_steps | Sequência de conexões, valores calculados por etapa, `wait_minutes` e `transfer_minutes` incluídos na duração e `fare_integrated` quando a etapa embarcou por uma integração tarifária |
 
 As tabelas adicionais de cache, filas, sessões e recuperação de senha são infraestrutura padrão do Laravel. O ambiente local guarda sessões e cache no Redis.
 
@@ -87,7 +89,7 @@ psql -h localhost -U elomob -d elomob -f database/sql/01_schema.sql
 psql -h localhost -U elomob -d elomob -f database/sql/02_seed.sql
 ```
 
-O primeiro script também registra as migrations aplicadas. O segundo ajusta as sequências de IDs após inserir os dados. Não execute esses scripts sobre um banco já migrado. Para a rotina de desenvolvimento, use `php artisan migrate --seed`.
+O primeiro script traz o estado final das migrations já consolidado: cada tabela aparece em um único `CREATE TABLE`, com suas colunas, chaves e restrições CHECK, seguido dos seus índices. Ele segue a ordem extensões, rede de transporte, usuários, buscas e resultados, funções e gatilhos e, por fim, a infraestrutura do Laravel com o registro das migrations aplicadas. O banco criado por ele é igual ao de `php artisan migrate`: o `pg_dump --schema-only` dos dois coincide. O segundo insere a carga com um `INSERT` por tabela, cada conexão e integração comentada com seu trajeto, e ajusta as sequências de IDs. Não execute esses scripts sobre um banco já migrado. Para a rotina de desenvolvimento, use `php artisan migrate --seed`.
 
 A carga tem 17 paradas, 7 linhas (entre elas a Linha Sul do metrô, a 061 pela Via Mangue e o BRT da Caxangá), 52 conexões e 6 integrações. Os recursos de acessibilidade variam de propósito: a Estação Recife tem degraus na entrada e escada até a plataforma da Linha Centro, cujos trens não têm painel; a travessia dela até o Recife Antigo não tem semáforo sonoro; as linhas 042 e 081 não têm letreiro; a 033 não tem elevador; o trecho a pé entre a Estação Joana Bezerra e Afogados não serve para cadeira de rodas; e o Terminal Cais de Santa Rita não tem piso tátil. Com isso, cada tipo de necessidade muda o trajeto de Boa Viagem ao Recife Antigo.
 

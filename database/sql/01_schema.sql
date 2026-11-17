@@ -11,7 +11,8 @@
 --   2. Usuários             users, saved_places
 --   3. Buscas e resultados  trip_searches, itineraries, itinerary_steps
 --   4. Funções e gatilhos   geometria das conexões e versão da rede
---   5. Infraestrutura       tabelas padrão do Laravel e registro de migrations
+--   5. Infraestrutura       tabelas padrão do Laravel, tokens do Sanctum e
+--                           registro de migrations
 --
 -- Convenções: valores monetários em centavos (inteiros), durações em minutos,
 -- distâncias em metros, datas em UTC. Regras numéricas ficam em CHECK, porque
@@ -162,7 +163,7 @@ CREATE INDEX integrations_from_mode_id_index ON integrations (from_mode_id);
 CREATE INDEX integrations_to_mode_id_index   ON integrations (to_mode_id);
 
 -- Versão atual da rede (linha única), renovada por gatilho. O planejador guarda
--- a rede no Redis sob essa versão.
+-- a rede no cache sob essa versão.
 CREATE TABLE network_versions (
     id      SMALLINT    PRIMARY KEY,
     version VARCHAR(36) NOT NULL,
@@ -432,6 +433,25 @@ CREATE TABLE failed_jobs (
 
 CREATE INDEX failed_jobs_connection_queue_failed_at_index ON failed_jobs (connection, queue, failed_at);
 
+-- Tokens de acesso da API (Laravel Sanctum).
+CREATE TABLE personal_access_tokens (
+    id             BIGSERIAL    PRIMARY KEY,
+    tokenable_type VARCHAR(255) NOT NULL,
+    tokenable_id   BIGINT       NOT NULL,
+    name           TEXT         NOT NULL,
+    token          VARCHAR(64)  NOT NULL,
+    abilities      TEXT,
+    last_used_at   TIMESTAMP(0),
+    expires_at     TIMESTAMP(0),
+    created_at     TIMESTAMP(0),
+    updated_at     TIMESTAMP(0),
+
+    CONSTRAINT personal_access_tokens_token_unique UNIQUE (token)
+);
+
+CREATE INDEX personal_access_tokens_tokenable_type_tokenable_id_index ON personal_access_tokens (tokenable_type, tokenable_id);
+CREATE INDEX personal_access_tokens_expires_at_index                  ON personal_access_tokens (expires_at);
+
 -- Migrations já representadas acima, para `php artisan migrate` não repeti-las.
 CREATE TABLE migrations (
     id        SERIAL       PRIMARY KEY,
@@ -443,15 +463,9 @@ INSERT INTO migrations (migration, batch) VALUES
     ('0001_01_01_000000_create_users_table', 1),
     ('0001_01_01_000001_create_cache_table', 1),
     ('0001_01_01_000002_create_jobs_table', 1),
-    ('2026_10_30_174536_create_mobility_tables', 1),
-    ('2026_10_31_012655_add_spatial_network_and_wait_times', 1),
-    ('2026_10_31_205505_add_integrity_checks_and_foreign_key_indexes', 1),
-    ('2026_10_31_212051_make_lines_the_source_of_connection_fares_and_modes', 1),
-    ('2026_10_31_222451_add_transfer_minutes_to_itinerary_steps', 1),
-    ('2026_10_31_225510_allow_several_lines_on_the_same_stretch', 1),
-    ('2026_10_31_230854_move_search_departure_out_of_filters', 1),
-    ('2026_11_02_004520_add_accessibility_needs_and_features', 1),
-    ('2026_11_02_132510_add_fare_integration_to_integrations_and_steps', 1),
-    ('2026_11_02_141210_create_network_versions_table', 1);
+    ('2026_11_16_000000_create_transport_network_tables', 1),
+    ('2026_11_16_000001_create_saved_places_and_trip_tables', 1),
+    ('2026_11_16_000002_create_network_triggers', 1),
+    ('2026_11_16_000003_create_personal_access_tokens_table', 1);
 
 COMMIT;

@@ -34,10 +34,15 @@ Route::get('/detalhes-viagem', function () {
     return view('detalhes-viagem');
 })->name('detalhes-viagem');
 
-// 👇 NOVA ROTA DO HISTÓRICO 👇
+// Rota do Histórico
 Route::get('/historico', function () {
     return view('historico');
 })->name('historico');
+
+// 👇 NOVA ROTA DE TERMOS E PRIVACIDADE 👇
+Route::get('/termos', function () {
+    return view('termos');
+})->name('termos');
 // 👆 FIM DA NOVA ROTA 👆
 
 Route::middleware('auth')->group(function () {

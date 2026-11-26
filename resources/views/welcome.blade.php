@@ -242,9 +242,11 @@
                 @endauth
             </div>
             <div>
-                <h5>Legal</h5>
-                <a href="#">Privacidade</a>
-                <a href="#">Termos de Uso</a>
+                <div>
+    <h5>Legal</h5>
+    <a href="{{ route('termos') }}">Privacidade</a>
+    <a href="{{ route('termos') }}">Termos de Uso</a>
+</div>
             </div>
         </div>
         <div class="footer-bottom">

@@ -29,10 +29,15 @@ Route::get('/resultados', function () {
     return view('resultados');
 })->name('resultados');
 
-// 👇 NOVA ROTA DE DETALHES DA VIAGEM 👇
+// Rota de Detalhes da Viagem
 Route::get('/detalhes-viagem', function () {
     return view('detalhes-viagem');
 })->name('detalhes-viagem');
+
+// 👇 NOVA ROTA DO HISTÓRICO 👇
+Route::get('/historico', function () {
+    return view('historico');
+})->name('historico');
 // 👆 FIM DA NOVA ROTA 👆
 
 Route::middleware('auth')->group(function () {

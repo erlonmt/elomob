@@ -11,9 +11,6 @@ use Illuminate\View\View;
 
 class ProfileController extends Controller
 {
-    /**
-     * Display the user's profile form.
-     */
     public function edit(Request $request): View
     {
         return view('profile.edit', [
@@ -21,25 +18,43 @@ class ProfileController extends Controller
         ]);
     }
 
-    /**
-     * Update the user's profile information.
-     */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $user = $request->user();
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+        $data = $request->validated();
+
+        // Atualização exclusiva das preferências de mobilidade.
+        if ($request->boolean('preferences_form')) {
+            $user->preferred_route = $data['preferred_route'];
+
+            $user->transport_modes = array_values(
+                $data['transport_modes'] ?? []
+            );
+
+            $user->accessibility_needs = array_values(
+                $data['accessibility_needs'] ?? []
+            );
+
+            $user->save();
+
+            return Redirect::route('profile.edit')
+                ->with('status', 'preferences-updated');
         }
 
-        $request->user()->save();
+        // Atualização das informações pessoais.
+        $user->fill($data);
 
-        return Redirect::route('profile.edit')->with('status', 'profile-updated');
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
+        }
+
+        $user->save();
+
+        return Redirect::route('profile.edit')
+            ->with('status', 'profile-updated');
     }
 
-    /**
-     * Delete the user's account.
-     */
     public function destroy(Request $request): RedirectResponse
     {
         $request->validateWithBag('userDeletion', [

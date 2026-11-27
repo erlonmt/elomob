@@ -7,7 +7,6 @@
         .search-bar { background: #0f172a; padding: 30px 8%; display: flex; justify-content: center; }
         .search-inner { background: #fff; padding: 12px; border-radius: 16px; display: flex; gap: 12px; width: 100%; max-width: 1000px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
         
-        /* CORRIGIDO AQUI: Adicionado color e font-weight */
         .search-inner input { 
             flex: 1; padding: 16px; border: 1px solid #cbd5e1; border-radius: 10px; 
             outline: none; font-family: inherit; font-size: 16px; background: #f1f5f9; 
@@ -65,72 +64,36 @@
     <div class="main-content">
         <h1 class="page-title">Resultados da Pesquisa</h1>
         <p class="page-subtitle">
-            A mostrar opções de <strong>{{ request('origem', 'Centro') }}</strong> para <strong>{{ request('destino', 'Aeroporto') }}</strong> 
-            em {{ request('data') ? date('d/m/Y', strtotime(request('data'))) : date('d/m/Y') }}.
+            A mostrar opções de <strong>{{ $origem ?? 'Centro' }}</strong> para <strong>{{ $destino ?? 'Aeroporto' }}</strong> 
+            em {{ isset($data) ? date('d/m/Y', strtotime($data)) : date('d/m/Y') }}.
         </p>
 
         <div class="trip-list">
-            
-            <!-- Opção 1: Rápida -->
-            <div class="trip-card fastest">
-                <div class="trip-info">
-                    <h3>Trajeto Mais Rápido</h3>
-                    <div class="trip-details">
-                        <span>⏱ 25 min</span>
-                        <span>🚶 5 min a pé</span>
-                        <span>🔄 1 transbordo</span>
+            {{-- O loop abaixo vai criar os cartões com os dados vindos do Back-end --}}
+            @forelse($viagens as $viagem)
+                <div class="trip-card {{ $viagem['classe'] }}">
+                    <div class="trip-info">
+                        <h3>{{ $viagem['tipo'] }}</h3>
+                        <div class="trip-details">
+                            <span>⏱ {{ $viagem['tempo'] }}</span>
+                            <span>🚌 {{ $viagem['transporte'] }}</span>
+                        </div>
+                        <div class="trip-tags">
+                            <span class="tag" style="background: {{ $viagem['cor'] }}20; color: {{ $viagem['cor'] }};">
+                                {{ $viagem['transporte'] }}
+                            </span>
+                        </div>
                     </div>
-                    <div class="trip-tags">
-                        <span class="tag blue">Rápido</span>
-                        <span class="tag blue">Metro + Autocarro</span>
-                    </div>
-                </div>
-                <div class="trip-price">
-                    <div class="price"><span>R$</span> 4,50</div>
-                    <a href="{{ route('detalhes-viagem') }}" class="btn-buy">Selecionar</a>
-                </div>
-            </div>
-
-            <!-- Opção 2: Barata -->
-            <div class="trip-card cheapest">
-                <div class="trip-info">
-                    <h3>Opção Mais Económica</h3>
-                    <div class="trip-details">
-                        <span>⏱ 40 min</span>
-                        <span>🚶 2 min a pé</span>
-                        <span>🔄 Direto</span>
-                    </div>
-                    <div class="trip-tags">
-                        <span class="tag green">Económico</span>
-                        <span class="tag green">Autocarro</span>
+                    <div class="trip-price">
+                        <div class="price"><span>R$</span> {{ $viagem['preco'] }}</div>
+                        <a href="{{ route('detalhes-viagem', ['origem' => $viagem['origem'], 'destino' => $viagem['destino'], 'data' => $viagem['data']]) }}" class="btn-buy" style="background: {{ $viagem['cor'] }};">Selecionar</a>
                     </div>
                 </div>
-                <div class="trip-price">
-                    <div class="price"><span>R$</span> 3,20</div>
-                    <a href="{{ route('detalhes-viagem') }}" class="btn-buy" style="background: #10b981; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);">Selecionar</a>
+            @empty
+                <div style="text-align: center; padding: 40px; background: #fff; border-radius: 20px; border: 1px solid #e2e8f0;">
+                    <p style="color: #64748b; font-size: 18px;">Nenhuma viagem encontrada para esta pesquisa. Tente outra origem ou destino.</p>
                 </div>
-            </div>
-
-            <!-- Opção 3: Sustentável -->
-            <div class="trip-card sustainable">
-                <div class="trip-info">
-                    <h3>Opção Sustentável</h3>
-                    <div class="trip-details">
-                        <span>⏱ 30 min</span>
-                        <span>🚲 15 min a pedalar</span>
-                        <span>🔄 0 emissões</span>
-                    </div>
-                    <div class="trip-tags">
-                        <span class="tag purple">Eco-friendly</span>
-                        <span class="tag purple">Bicicleta</span>
-                    </div>
-                </div>
-                <div class="trip-price">
-                    <div class="price"><span>R$</span> 0,00</div>
-                    <a href="{{ route('detalhes-viagem') }}" class="btn-buy" style="background: #8b5cf6; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);">Selecionar</a>
-                </div>
-            </div>
-
+            @endforelse
         </div>
     </div>
 @endsection

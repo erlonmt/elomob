@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\TripSearchController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -25,9 +26,7 @@ Route::get('/porque', function () {
 })->name('porque');
 
 // Rota de Resultados
-Route::get('/resultados', function () {
-    return view('resultados');
-})->name('resultados');
+Route::get('/resultados', [TripSearchController::class, 'search'])->name('resultados');
 
 // Rota de Detalhes da Viagem
 Route::get('/detalhes-viagem', function () {
